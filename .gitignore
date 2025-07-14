@@ -1,0 +1,27 @@
+# ─── Node.js dependencies ─────────────────────────────────────
+/node_modules/
+/dooop-functions/node_modules/
+/functions/node_modules/
+
+# ─── Firebase emulator & debug logs ───────────────────────────
+.firebase/                         # 로컬 에뮬레이터 데이터
+firebase-debug.log*                # firebase debug 로그
+*.log                              # 기타 로그 파일(.log)
+
+# ─── 서비스 계정 키 (절대 외부에 노출 금지) ───────────────────
+/service-account.json
+/dooop-service-account.json
+
+# ─── 테스트 스크립트 & 임시 파일 ───────────────────────────────
+/test.js
+/signup-test.html
+/bfg.jar                           # BFG Repo-Cleaner 바이너리
+
+# ─── IDE / OS 잡파일 ──────────────────────────────────────────
+.vscode/
+*.DS_Store
+Thumbs.db
+
+# ─── 환경 설정 파일 (필요 시 주석 처리) ───────────────────────
+# .env
+# .env.local
