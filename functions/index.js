@@ -15,8 +15,9 @@ const { user }  = require('firebase-functions');
 
 exports.onUserCreate = functions
     .runWith(runtimeOpts)
-    .https
-    .onCall(async (data, context) => {
+    .auth
+    .user()
+    .onCreate(async (user) => {
         console.log('▶ onUserCreate fired for uid:', user.uid);
 
         const uid = user.uid;
@@ -48,8 +49,7 @@ exports.onUserCreate = functions
 //레벨에 맞춰 잠금 해제된 가구 목록 반환
 exports.getUnlockedFurnitures = functions
     .runWith(runtimeOpts)
-    .https
-    .onCall(async (data, context) => {
+    .https.onCall(async (data, context) => {
         //인증확인
         if(!context.auth) {
             throw new functions.https.HttpsError(
@@ -95,8 +95,7 @@ exports.getUnlockedFurnitures = functions
 //포인트로 가구 구매 처리
 exports.purchaseFurniture = functions
     .runWith(runtimeOpts)
-    .https
-    .onCall(async (data, context) => {
+    .https.onCall(async (data, context) => {
         if (!context.auth) {
                 throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
             }
@@ -149,8 +148,7 @@ exports.purchaseFurniture = functions
 //퀘스트 완료 시 보상(포인트) 지급
 exports.completeQuest = functions
     .runWith({ timeoutSeconds: 60 })
-    .https
-    .onCall(async (data, context) => {
+    .https.onCall(async (data, context) => {
         //인증 체크
         if (!context.auth) {
             throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
