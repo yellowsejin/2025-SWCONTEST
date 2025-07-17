@@ -208,3 +208,57 @@ exports.completeQuest = functions
             newPoint: result.newPoint
         };
     });
+
+
+const admin = require('firebase-functions');
+const express = require('express');
+
+const app = express();
+app.use(express.json());
+
+// --- 1. GET /checkUserRoom?uid=xxx ---
+// 기능: uid에 해당하는 방이 존재하는지 확인
+app.get('/checkUserRoon', async (req, res) => {
+    const uid = req.query.uid;
+    if (!uid) {
+        return res.status(400).json({ error: 'uid query parameter is required' });
+    }
+    try {
+        const roomDoc = await db.collection('rooms').doc(uid).get();
+        return res.json({ status: roomDoc.exists ? 'exists' : 'not_exists' });
+    } catch (err) {
+        console.error('checkUserRoom error:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// --- 2. POST /onUserCreate ---
+// 기능: uid 기준으로 방 최초 생성 (중복 방 생성 방지)
+app.post('/onUserCreate', async (req, res) => {
+    const userId = req.body.userId;
+    if (!userId) {
+        return res.status(400).json({ error: 'userId is required in request body' });
+    }
+    try {
+        const roomRef = db.collection('rooms').doc(userId);
+        const roomDoc = await roomRef.get();
+        if (roomDoc.exists) {
+            return res.status(400).json({ error: 'Room already exists for this uid' });
+        }
+        await roomRef.set({
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.json({ status: 'success' });
+    } catch (err) {
+        console.error('onUserCreate error:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+//http 함수로 내보내기
+exports.api = functions
+    .runWith({
+        timeoutSeconds: 300,
+        memory: '512MB'
+    })
+    .https.onRequest(app);
