@@ -1,14 +1,20 @@
-const { initializeApp } = require('firebase-admin/app'); //admin SDK 초기화
-const { getFirestore, FieldValue } = require('firebase-admin/firestore'); //firestore db(instance) 가져옴
-const functions = require('firebase-functions/v1'); //api? 
+const functions = require('firebase-functions/v1');
+const admin = require('firebase-admin');
+const express = require('express');
+
+admin.initializeApp();
+const db = admin.firestore();
+const FieldValue = admin.firestore.FieldValue;
+
+const app = express();
+app.use(express.json());
+
 
 const runtimeOpts = {
     timeoutSeconds: 120,
     memory: '512MB'
 };
 
-initializeApp();
-const db = getFirestore();
 
 //auth trigger
 const { user }  = require('firebase-functions');
@@ -22,11 +28,11 @@ exports.onUserCreate = functions
 
         const uid = user.uid;
         const email = user.email || null;
-        const name = user.displayName || 'New User';
+        const id = user.displayName || '';
 
         try {
             await db.collection('users').doc(uid).set({
-                username: name,
+                ID: id,
                 email: email,
                 createdAt: new Date(),
                 point: 0,
@@ -150,7 +156,7 @@ exports.completeQuest = functions
     .runWith({ timeoutSeconds: 60 })
     .https.onCall(async (data, context) => {
         //인증 체크
-        if (!context.auth) {
+        /*if (!context.auth) {
             throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
         }
         const uid = context.auth.uid;
@@ -168,7 +174,9 @@ exports.completeQuest = functions
         const { rewardPoint } = questSnap.data();
         if (typeof rewardPoint !== 'number' || rewardPoint <= 0) {
             throw new functions.https.HttpsError('failed-precondition', '잘못된 보상 설정입니다.');
-        }
+        } */
+
+        const rewardPoint = 1;
 
         //트랜잭션으로 포인트 지급 + 완료 기록
         const userRef = db.collection('users').doc(uid);
@@ -192,7 +200,7 @@ exports.completeQuest = functions
             });
             //완료 기록 남기기
             tx.set(statusRef, {
-                completeAt: new Date(),
+                completeAt: admin.firestore.FieldValue.serverTimestamp(),
                 rewardGiven: true,
                 rewardPoint
             });
@@ -204,17 +212,12 @@ exports.completeQuest = functions
 
         return {
             success: true,
-            message: `퀘스트 ${questId} 완료, ${rewardPoint} 포인트가 지급되었습니다.`,
+            message: `퀘스트 ${questId} 완료, 1 포인트가 지급되었습니다.`,
             newPoint: result.newPoint
         };
     });
 
 
-const admin = require('firebase-functions');
-const express = require('express');
-
-const app = express();
-app.use(express.json());
 
 // --- 1. GET /checkUserRoom?uid=xxx ---
 // 기능: uid에 해당하는 방이 존재하는지 확인
@@ -262,3 +265,61 @@ exports.api = functions
         memory: '512MB'
     })
     .https.onRequest(app);
+
+    //친추
+    exports.sendFriendRequest = functions
+        .runWith(runtimeOpts)
+        .https.onCall(async (data, context) => {
+            if (!context.auth) throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
+            const from = context.auth.uid;
+            const to = data.toUid;
+            if (!to) throw new functions.https.HttpsError('invalid-argument', 'toUid가 필요합니다.');
+
+            //중복 방지 요청
+            const dup = await db.collection('friendRequest')
+                .where('from','==',from).where('to','==',to).where('status','==','pending')
+                .get();
+            if (!dup.empty) {
+                throw new functions.https.HttpsError('already-exists', '이미 요청을 보냈습니다.');
+            }
+
+            await db.collection('friendRequests').add({
+                from, to, status:'pending', createdAt: FieldValue.serverTimestamp()
+            });
+            return { success: true };
+        });
+
+    exports.respondFriendRequest = functions
+        .runWith(runtimeOpts)
+        .https.onCall(async (data, context) => {
+            if (!context.auth) throw new functions.https.HttpsError('unauthenticated','로그인이 필요합니다.');
+            const me = context.auth.uid;
+            const requestId = data.requestId;
+            const accept = data.accept;
+            if (!requestId || typeof accept !== 'boolean') {
+                throw new functions.https.HttpsError('invalid-argument', 'requestId와 accept(boolean)가 필요합니다.');
+            }
+
+            const reqRef = db.collection('friendRequests').doc(requestId);
+            const reqSnap = await reqRef.get();
+            if (!reqSnap.exists) throw new functions.https.HttpsError('not-found', '요청을 찾을 수 없습니다.');
+            const { from, to, status } = reqSnap.data();
+            if (to !== me) throw new functions.https.HttpsError('permission-denied', '내게 온 요청이 아닙니다.');
+            if (status !== 'pending') throw new functions.https.HttpsError('failed-precondition', '이미 처리된 요청입니다.');
+
+            if (accept) {
+                //양 friends 배열에 추가
+                const userRef = db.collection('users').doc(me);
+                const otherRef = db.collection('users').doc(from);
+                await db.runTransaction(async tx => {
+                    tx.update(userRef, { friends: FieldValue.arrayUnion(from) });
+                    tx.update(otherRef, { friends: FieldValue.arrayUnion(me) });
+                    tx.update(reqRef, {status:'accepted' });
+                });
+                return { success:true, message:'친구가 되었습니다.' };
+            } else {
+                //거절처리
+                await reqRef.update({ status:'rejected' });
+                return { success:true, message:'친구 요청을 거절했습니다.' };
+            }
+        });
