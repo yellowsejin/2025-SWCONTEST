@@ -70,6 +70,8 @@ module.exports.signup = functions.https.onRequest((req, res) => {
           }
         );
       });
+      
+
       await batch.commit();
 
       // 6) 성공 응답
