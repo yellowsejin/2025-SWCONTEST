@@ -31,7 +31,6 @@ module.exports.addCategory = functions.https.onRequest((req, res) => {
       await categoryRef.set({
         name,
         color,
-        isPublic: true,
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
