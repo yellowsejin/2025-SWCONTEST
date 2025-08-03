@@ -18,7 +18,6 @@ module.exports.addTodo = functions.https.onRequest((req, res) => {
       endDate,           // 기간의 끝
       repeat = 'none',   // 'none'|'daily'|'weekly'|'biweekly'|'monthly'
       isPublic = false,  // 공개 여부
-      alarm = { enabled: false, time: null },
       memo = ''
     } = req.body;
 
@@ -43,7 +42,6 @@ module.exports.addTodo = functions.https.onRequest((req, res) => {
         endDate,
         repeat,
         isPublic,
-        alarm,
         memo,
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
