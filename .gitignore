@@ -25,3 +25,18 @@ Thumbs.db
 # ─── 환경 설정 파일 (필요 시 주석 처리) ───────────────────────
 # .env
 # .env.local
+
+#테스트 파일
+/DooopTest
+
+# logs & debug
+firebase-debug*.log
+firestore-debug*.log
+pglite-debug*.log
+
+# 빌드 산출물 / 라이브러리
+bfg.jar
+node_modules/
+
+# 환경설정 (예시)
+.env
