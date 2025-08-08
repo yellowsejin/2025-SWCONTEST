@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "firestore": {
     "database": "(default)",
     "location": "nam5",
@@ -10,6 +11,22 @@
       "source": "functions",
       "runtime": "nodejs22",
       "codebase": "default",
+=======
+  "functions": [
+    {
+      "source": "functions",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    },
+    {
+      "source": "dooop-functions",
+      "codebase": "dooop-functions",
+>>>>>>> origin/BE_yunseo
       "ignore": [
         "node_modules",
         ".git",
@@ -19,6 +36,7 @@
       ]
     }
   ],
+<<<<<<< HEAD
   "emulators": {
     "auth": {
       "port": 9099
@@ -34,5 +52,12 @@
       "port": 4000
     },
     "singleProjectMode": true
+=======
+  "firestore": {
+    "database": "(default)",
+    "location": "nam5",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+>>>>>>> origin/BE_yunseo
   }
 }
