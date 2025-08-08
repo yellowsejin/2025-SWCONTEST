@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const admin = require('firebase-admin');
 const cors = require('cors')({ origin: true });
 
@@ -31,6 +30,7 @@ exports.addTodo         = addTodo;
 exports.deleteTodo      = deleteTodo;
 exports.changePassword  = changePassword;
 exports.completeTodo    = completeTodo;
+
 exports.todoCounters    = todoCounters;
 =======
 const admin = require('firebase-admin');
