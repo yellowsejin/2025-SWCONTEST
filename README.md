@@ -1,3 +1,8 @@
+## 0808 오류수정<br />
+전체 오류나서 코드 싹 고침 <br />
+CompleteTodo, TodoCounters 함수 새로 추가함 <br />
+레벨업 구현 = 투두 완료시 counter 증가 => 레벨업됨 <br />
+
 ## 0727 추가기능(파일) 업로드<br />
 AddCategory, AddTodo, DeleteCategory, DeleteTodo <br />
 회원가입 후 카테고리/캘린더 문서 작성 가능하도록 기능 추가 <br />
