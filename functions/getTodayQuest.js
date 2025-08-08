@@ -11,6 +11,7 @@ const getTodayQuest = functions
     memory: "512MB",
   })
   .https.onCall(async (_, context) => {
+    
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
@@ -19,49 +20,63 @@ const getTodayQuest = functions
     }
 
   const uid   = context.auth.uid;
-  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  const today = (() => {
+      const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
+      const y   = now.getUTCFullYear();
+      const m   = String(now.getUTCMonth() + 1).padStart(2, '0');
+      const d   = String(now.getUTCDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    })();
 
   // 사용자별 오늘의 퀘스트 문서 참조
   const dailyRef = db
     .collection("users").doc(uid)
     .collection("dailyQuests").doc(today);
+    
 
   const snap = await dailyRef.get();
-  if (snap.exists) {
-      // 기존에 객체 배열로 저장돼 있던 것도, 새로 문자열 배열로 저장된 것도 모두 커버
-    const raw = snap.data().quests || [];
-    return raw.map(q => typeof q === "string" ? q : q.text);
-  }
-    
-  // 전체 퀘스트 목록에서 ID만 가져오기
-  const allSnap = await db.collection("quests").get();
-  const allIds  = allSnap.docs.map(doc => doc.id);
+    if (snap.exists) {
+      const ids = snap.data().questIds || [];
+      // 기존에 저장된 ID로 {id,text,rewardCoins} 배열로 변환
+      return Promise.all(
+        ids.map(async id => {
+          const qSnap = await db.collection("quests").doc(id).get();
+          const data  = qSnap.data() || {};
+          return {
+            id,
+            text: data.text || "",
+            rewardCoins: data.rewardCoins || 0
+          };
+        })
+      );
+    }
 
-  // Fisher–Yates 셔플
-  for (let i = allIds.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [allIds[i], allIds[j]] = [allIds[j], allIds[i]];
-  }
+    // 전체 퀘스트 컬렉션에서 ID 5개 랜덤 추출
+    const allIds = (await db.collection("quests").get()).docs.map(d => d.id);
+    for (let i = allIds.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allIds[i], allIds[j]] = [allIds[j], allIds[i]];
+    }
+    const pickIds = allIds.slice(0, 5);
 
-  // 상위 5개 뽑기
-  const pickIds = allIds.slice(0, 5);
+    // 오늘치로 ID 리스트 저장
+    await dailyRef.set({
+      questIds: pickIds,
+      generatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
 
-  const quests = await Promise.all(
-    pickIds.map(async id => {
-      const defSnap = await db.collection("quests").doc(id).get();
-      const { text, rewardCoins } = defSnap.data();
-      return { text }; 
-    })
-  );
-
-
-  // 오늘의 퀘스트 저장
-  await dailyRef.set({
-    quests,
-    generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    // 최종 반환할 객체 배열 생성
+    return Promise.all(
+      pickIds.map(async id => {
+        const qSnap = await db.collection("quests").doc(id).get();
+        const data  = qSnap.data() || {};
+        return {
+          id,
+          text: data.text || "",
+          rewardCoins: data.rewardCoins || 0
+        };
+      })
+    );
   });
 
-  return quests;
-});
-
-module.exports = getTodayQuest;
+module.exports = getTodayQuest
