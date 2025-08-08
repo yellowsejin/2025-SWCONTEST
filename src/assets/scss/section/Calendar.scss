@@ -42,11 +42,42 @@
   background-color: #ffffff;
   border-radius: 8px;
   min-height: 58px;
+  max-height: 90px;
   padding: 4px;
   font-size: 12px;
-  position: relative;
+  overflow: hidden;
   text-align: left;
-  text-align: center;
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.date-number {
+  font-weight: bold;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.schedule-badge {
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.more-schedules {
+  font-size: 11px;
+  color: #4a90e2;
+  margin-top: auto;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .calendar-cell.today {
@@ -54,15 +85,6 @@
   background-color: #e8f0fe;
 }
 
-.schedule-badge {
-  display: inline-block;
-  margin-top: 2px;
-  padding: 1px 6px;
-  font-size: 11px;
-  border-radius: 6px;
-  width: fit-content;
-  white-space: nowrap;
-}
 
 .add-button {
   display: inline-block;

@@ -30,6 +30,7 @@ function AppRoutes() {
         <Route path="/find-password" element={<FindPassword />} />
         <Route path="/list" element={<DailyList />}/>
         <Route path="/category" element={<Category />} />
+        <Route path="/daily/:date" element={<DailyList />} />
         <Route path="/add-item" element={<AddDailyItem />} />
 
         <Route path="/quest" element={<Quest />} />
