@@ -33,6 +33,9 @@ completeQuest -> 퀘스트 완료 시 포인트 지급
 
 회원가입 및 월캘린더 일일리스트 , 네비게이션 초기 디자인 완료
 
+**지우 0808 업로드**
+카테고리, 일일리스트 추가 및 삭제 / 캘린더 연동
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
