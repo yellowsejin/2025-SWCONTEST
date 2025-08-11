@@ -1,7 +1,7 @@
 .A-popup {
   width: 353px;
   height: 380px;
-  background: #f9f9f9;
+  background-color: #f2f2f2;
   border-radius: 12px;
   padding: 20px;
   overflow-y: auto;
@@ -9,6 +9,19 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+.H {
+  height: 20px;
+}
+
+.popup-header h4 {
+  margin-top: -25px;
+  margin-left: -30px;
+  /* 위로 10px 올림, 숫자 조절 가능 */
+  /* 또는 */
+  /* position: relative;
+     top: -10px; */
 }
 
 .popup-header {
@@ -19,7 +32,7 @@
   font-weight: bold;
   font-size: 18px;
   margin-bottom: 12px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid black;
   padding-bottom: 8px;
 }
 
@@ -35,25 +48,26 @@
   z-index: 10;
 }
 
-
-.popup-body {
+.poppup-body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
   flex-grow: 1;
 }
 
 .form-group {
+  padding: 10px;
   display: flex;
   flex-direction: column;
+  border-bottom: 1px solid black;
 }
 
 input[type="text"],
 textarea,
 select {
+  background-color: #f2f2f2;
   padding: 10px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #f2f2f2;
   font-size: 14px;
   box-sizing: border-box;
   width: 100%;
@@ -64,13 +78,80 @@ textarea {
   min-height: 60px;
 }
 
+.button-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
 .submit-btn {
   margin-top: auto;
-  padding: 12px;
-  border: none;
-  background-color: #eee;
+  width: 170px;
+  height: 40px;
+  line-height: 20px;
+  background-color: #dddddd;
+  color: black;
   font-weight: bold;
-  border-radius: 6px;
+  border-radius: 15px;
   cursor: pointer;
-  width: 100%;
+}
+
+
+.toggle-row {
+  display: flex;
+  flex-direction: row;
+  /* 강제로 가로 배치 */
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toggle-label {
+  margin: 20px 0px;
+  /* 기본 여백 제거 */
+}
+
+/* 스위치 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 20px;
+  transition: 0.4s;
+}
+
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+
+.switch input:checked+.slider {
+  background-color: #4caf50;
+}
+
+.switch input:checked+.slider::before {
+  transform: translateX(20px);
 }

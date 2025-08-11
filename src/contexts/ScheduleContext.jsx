@@ -7,6 +7,7 @@ export function ScheduleProvider({ children }) {
 
   // 일정 추가
   const addSchedule = (date, item) => {
+    console.log("addSchedule 호출됨", date, item);
     setSchedules((prev) => ({
       ...prev,
       [date]: [...(prev[date] || []), item],

@@ -92,6 +92,8 @@ function AddDailyItem({ date, category, closePopup, editItem = null }) {
                     ...newItem,
                     date: targetDate,
                 });
+
+                console.log("handleSubmit 호출됨, 추가할 일정:", newItem);
             }
         } else {
             // 신규 추가 로직
@@ -116,13 +118,15 @@ function AddDailyItem({ date, category, closePopup, editItem = null }) {
     return (
         <div className="A-popup">
             <div className="popup-header">
-                <h2>{isEditMode ? "일정 수정" : `${date} 일정 추가`}</h2>
+                <div className="H">
+                    <h4>{isEditMode ? "일정 수정" : `${date}`}</h4>
+                </div>
                 <button className="close-btn" onClick={closePopup}>✕</button>
             </div>
 
             <div className="popup-body">
                 <div className="form-group">
-                    <label>🔁 반복</label>
+                    <label>반복</label>
                     <select value={repeat} onChange={(e) => setRepeat(e.target.value)}>
                         <option value="한번">한번</option>
                         <option value="매일">매일</option>
@@ -143,9 +147,17 @@ function AddDailyItem({ date, category, closePopup, editItem = null }) {
                 )}
 
                 <div className="form-group toggle-row">
-                    <label>공개</label>
-                    <input type="checkbox" checked={isPublic} onChange={() => setIsPublic(!isPublic)} />
+                    <label className="toggle-label">공개</label>
+                    <label className="switch">
+                        <input
+                            type="checkbox"
+                            checked={isPublic}
+                            onChange={(e) => setIsPublic(e.target.checked)}
+                        />
+                        <span className="slider"></span>
+                    </label>
                 </div>
+
 
                 <div className="form-group">
                     <label>할 일 추가</label>
@@ -156,6 +168,7 @@ function AddDailyItem({ date, category, closePopup, editItem = null }) {
                         onChange={(e) => setTitle(e.target.value)}
                     />
                 </div>
+
 
                 <div className="form-group">
                     <label>메모</label>

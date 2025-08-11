@@ -3,13 +3,14 @@ import Category from "./Category";
 import { useSchedule } from "../../contexts/ScheduleContext";
 import AddDailyItem from "./AddDailyItem";
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../../assets/scss/section/DailyList.scss";
 
 function DailyList() {
   const { date } = useParams();
   const { categories } = useCategory();
   const { schedules } = useSchedule();
+  const [checkedItems, setCheckedItems] = useState({});
 
   const [showCategory, setShowCategory] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
@@ -42,6 +43,25 @@ function DailyList() {
     return `${year}년 ${month}월 ${day}일 ${weekday}요일`;
   };
 
+  useEffect(() => {
+    if (!schedules) return;
+    const currentDateStr = currentDate.toISOString().slice(0, 10);
+    const todaySchedules = schedules[currentDateStr] || [];
+    const initialChecked = {};
+    todaySchedules.forEach(item => {
+      initialChecked[item.id] = false;
+    });
+    setCheckedItems(initialChecked);
+  }, [schedules, currentDate]);
+
+  // 체크박스 클릭 시 호출되는 함수
+  const toggleCheck = (id) => {
+    setCheckedItems(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   const displayDate = getFormattedDate(currentDate);
   const currentDateStr = currentDate.toISOString().slice(0, 10);
 
@@ -60,15 +80,20 @@ function DailyList() {
               startDate: item.startDate || currentDateStr,
               endDate: item.endDate || currentDateStr,
             });
-
             setShowAddItem(true);
           }}
         >
-          <input type="checkbox" />
+          <input
+            type="checkbox"
+            checked={!!checkedItems[item.id]}
+            onClick={(e) => e.stopPropagation()}
+            onChange={() => toggleCheck(item.id)}
+          />
           <span>{item.title}</span>
         </div>
       ))
   );
+
   return (
     <div className="DailyList-wrapper">
       <div className="DailyList-page">
@@ -76,9 +101,7 @@ function DailyList() {
           <div className="title-block">
             <h2>일일리스트</h2>
             <div className="date-nav">
-              <button className="arrow-btn left" onClick={handlePrevDay}>◀</button>
-              <h2 className="current-date">{displayDate}</h2>
-              <button className="arrow-btn right" onClick={handleNextDay}>▶</button>
+              <p className="current-date">{displayDate}</p>
             </div>
           </div>
           <button onClick={() => setShowCategory(true)} className="category">카테고리</button>
@@ -99,8 +122,7 @@ function DailyList() {
                     setEditItem(null);
                     setShowAddItem(true);
                   }}
-                  className="add-button"
-                >
+                  className="add-button">
                   ＋
                 </button>
               </div>
@@ -140,10 +162,9 @@ function DailyList() {
           <AddDailyItem
             date={currentDateStr}
             category={selectedCategory}
-            editItem={editItem}           // ✅ 추가
+            editItem={editItem}
             closePopup={() => setShowAddItem(false)}
           />
-
         </div>
       )}
       {showCategory && (
@@ -151,7 +172,6 @@ function DailyList() {
           <Category closePopup={() => setShowCategory(false)} />
         </div>
       )}
-
     </div>
   );
 }

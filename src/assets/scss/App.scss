@@ -1,99 +1,20 @@
-.monthly-calendar-page {
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: white; // ✅ 웹 전체 배경은 흰색
   width: 100%;
-  max-width: 393px;
-  margin: 40px auto 0 auto;
+  height: 100%;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-
-  .calendar-month-title {
-    margin-top: 57px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-
-    font-weight: bold;
-    font-size: 24px;
-
-    .clickable {
-      cursor: pointer;
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-
-    // 기존 dropdown (옆에 따로 나오는 select - 사용 X일 가능성 높음)
-    .dropdown {
-      margin-left: 8px;
-      font-size: 14px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    // 수정된 inline dropdown (기존 텍스트 자리에 뜨는 select)
-    .dropdown-inline {
-      font-size: 16px;
-      font-weight: bold;
-      border: none;
-      background: transparent;
-      appearance: none;
-      padding: 0;
-      margin: 0;
-      cursor: pointer;
-
-      &:focus {
-        outline: none;
-      }
-    }
-  }
 }
 
-.calendar-box {
-  width: 359px;
-  margin: 0 auto;
-  margin-top: 40px;
-  background-color: #f2f2f2;
-  border-radius: 32px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 16px;
-  box-sizing: border-box;
-
-  .calendar-header {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    text-align: center;
-    font-size: 14px;
-    font-weight: bold;
-    color: #555;
-  }
-
-  .calendar-grid {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    grid-auto-rows: 58px;
-    gap: 6px;
-  }
-
-  .calendar-cell {
-    position: relative;
-    font-size: 12px;
-    padding: 13.9px;
-    color: black;
-
-    .date-number {
-      font-weight: bold;
-      margin-bottom: 2px;
-    }
-  }
-
-  .calendar-cell.empty {
-    background: transparent;
-  }
+#root {
+  width: 393px;
+  height: 844px;
+  background-color: #c6d0e0; // ✅ 여기만 색이 칠해짐
+  overflow: hidden;
+  border-radius: 10px; // 예쁘게
+  position: relative;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }

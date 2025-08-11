@@ -22,13 +22,14 @@ export default function AddFriend() {
       <h2>친구 추가</h2>
 
       <div className="search-box">
-        <input type="text" placeholder="친구 아이디를 입력하세요. 🔍" />
+        <input type="text" placeholder="친구 아이디를 입력하세요. " />
       </div>
 
       <div className="BB">
-        <Link to="/friends/received" className="Add-btn">
+        <Link to="/friends/requests" className="Add-btn">
           받은 신청 {requests.length > 0 && <span className="badge">{requests.length}</span>}
         </Link>
+
         <Link to="/friends/list" className="friends-btn">내 친구</Link>
       </div>
 

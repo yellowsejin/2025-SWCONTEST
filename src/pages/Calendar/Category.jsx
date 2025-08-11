@@ -9,32 +9,32 @@ function Category({ closePopup }) { // ✅ props 받기
   const [newColor, setNewColor] = useState("#a2d2ff");
 
   const handleAdd = () => {
-  const trimmedName = newName.trim();
-  if (!trimmedName) return;
+    const trimmedName = newName.trim();
+    if (!trimmedName) return;
 
-  const newCat = {
-    name: trimmedName,
-    color: newColor,
-    items: [],
-    locked: false,
+    const newCat = {
+      name: trimmedName,
+      color: newColor,
+      items: [],
+      locked: false,
+    };
+
+    addCategory(newCat);
+    setNewName("");
+    setNewColor("#a2d2ff");
   };
-
-  addCategory(newCat);
-  setNewName("");
-  setNewColor("#a2d2ff");
-};
 
 
   const handleDelete = (nameToDelete) => {
     setCategories(prev => prev.filter(cat => cat.name !== nameToDelete));
   };
-  
-  
+
+
 
   return (
     <div className="C-popup">
       <div className="popup-header">
-        <h2>카테고리 관리</h2>
+
         <button className="close-btn" onClick={closePopup}>✕</button> {/* ✅ 팝업 닫기 */}
       </div>
 
@@ -62,7 +62,9 @@ function Category({ closePopup }) { // ✅ props 받기
             </div>
             {!cat.locked && (
               <div className="item-actions">
-                <button onClick={() => handleDelete(cat.name)}>🗑</button>
+                <button onClick={() => handleDelete(cat.name)}>
+                  <img src="/img/trash.png" alt="삭제" className="delete-icon" />
+                </button>
               </div>
             )}
           </div>
