@@ -103,7 +103,7 @@ function AddDailyItem({ date, category, closePopup, editItem = null }) {
 
         closePopup();
     };
-    ;
+
 
     const handleDelete = () => {
         if (isEditMode) {

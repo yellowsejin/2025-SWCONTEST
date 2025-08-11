@@ -3,12 +3,12 @@
   width: 393px;
   height: 844px;
   margin: 0 auto;
-  background-color: #c6d0e0;
+  background-color: #cfd8e6;
   font-family: 'Pretendard', sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 135px;
+padding-top: 135px;
 }
 .calendar-container {
   width: 330px;
@@ -18,7 +18,9 @@
   padding: 20px;
   margin-top: 50px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
+
+ position: relative;
+  top: -50px;}
 
 .calendar-header {
   display: flex;
@@ -103,9 +105,6 @@
   justify-content: space-between; 
   width: 350px;
   margin: 0 auto;
-  
-  position: relative;
-  top: -50px;
 }
 
 .calendar-top>h2{
@@ -113,7 +112,6 @@
   font-weight: bold;
   text-align: center;
   flex: 1; 
-
 }
 .arrow-button {
   background: none;

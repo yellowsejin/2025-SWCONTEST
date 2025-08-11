@@ -1,122 +1,111 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import "../../assets/scss/section/Singup.scss";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ 추가
+import "../../assets/scss/Signup.scss"; // SCSS 파일 경로 확인
 
 function Signup() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    username: '',
-    password: '',
-    confirmPassword: '',
+  const navigate = useNavigate(); // ✅ 네비게이트 훅 생성
+
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
     agree: false,
   });
 
+  const [isValid, setIsValid] = useState(false);
+
+  // ✅ 모든 필수 항목이 채워졌는지 확인
+  useEffect(() => {
+    const { name, email, username, password, confirmPassword, agree } = formData;
+    setIsValid(
+      name.trim() &&
+      email.trim() &&
+      username.trim() &&
+      password.trim() &&
+      confirmPassword.trim() &&
+      password === confirmPassword &&
+      agree
+    );
+  }, [formData]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
-      [name]: type === 'checkbox' ? checked : value,
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-        alert('비밀번호가 일치하지 않습니다.');
-        return;
-    }
-    if (form.password.length < 8 || form.password.length > 16) {
-        alert('비밀번호는 8자 이상 16자 이하로 입력해주세요.');
-        return;
-  }
+  const handleSignup = async () => {
+    if (!isValid) return;
 
-    if (!form.agree) {
-      alert('개인정보 수집 및 이용에 동의해주세요.');
-      return;
-    }
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          username: formData.username,
+          password: formData.password,
+        }),
+      });
 
-    // 회원가입 로직 처리 후
-    alert('회원가입 완료!');
-    navigate('/login');
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("회원가입 성공!");
+        navigate("/login");
+      } else {
+        alert(`회원가입 실패: ${data.message || "에러 발생"}`);
+      }
+    } catch (err) {
+      console.error("회원가입 에러:", err);
+      alert("회원가입 요청 실패");
+    }
   };
 
   return (
     <div className="signup-page">
-      <div className="signup-container">
-        <h1>회원가입</h1>
-        <form className="signup-form" onSubmit={handleSubmit}>
-          <label className="signup-label">
-            이름<span className="required">*</span>
-            <input 
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-            />
-          </label>
+      <h2 className="signup-title">회원가입</h2>
 
-          <label className="signup-label">
-            이메일
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-            />
-          </label>
-
-          <label className="signup-label">
-            아이디<span className="required">*</span>
-            <input
-              type="text"
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              required
-            />
-          </label>
-
-          <label className="signup-label">
-            비밀번호<span className="required">*</span>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-            minLength={8}
-            maxLength={16}
-            />
-          </label>
-          <div className="password-hint">8~16자</div>
-
-          <label className="signup-label">
-            비밀번호 확인<span className="required">*</span>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              required
-            />
-          </label>
-
-          <label className="checkbox" >
-            <input
-              type="checkbox"
-              name="agree"
-              checked={form.agree}
-              onChange={handleChange}
-            />
-            개인정보 수집 및 이용에 동의합니다.
-          </label>
-
-          <button type="submit">완료</button>
-        </form>
+      <div className="form-group">
+        <label>이름 <span className="required">*</span></label>
+        <input type="text" name="name" value={formData.name} onChange={handleChange} />
       </div>
+
+      <div className="form-group">
+        <label>이메일 <span className="required">*</span></label>
+        <input type="email" name="email" value={formData.email} onChange={handleChange} />
+      </div>
+
+      <div className="form-group">
+        <label>아이디 <span className="required">*</span></label>
+        <input type="text" name="username" value={formData.username} onChange={handleChange} />
+      </div>
+
+      <div className="form-group">
+        <label>비밀번호 <span className="required">*</span></label>
+        <input type="password" name="password" value={formData.password} onChange={handleChange} />
+        <small>8~16자</small>
+      </div>
+
+      <div className="form-group">
+        <label>비밀번호 확인 <span className="required">*</span></label>
+        <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} />
+      </div>
+
+      <div className="checkbox-wrapper">
+        <input type="checkbox" name="agree" checked={formData.agree} onChange={handleChange} />
+        <span>개인정보 수집 및 이용에 동의합니다.</span>
+      </div>
+
+      <button className={`submit-button ${isValid ? "active" : ""}`} onClick={handleSignup}>
+        완료
+      </button>
     </div>
   );
 }

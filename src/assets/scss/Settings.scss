@@ -1,0 +1,192 @@
+$blue-ink: #183e70;
+
+.settings-page {
+  padding-top: 136px;
+  width: 393px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.settings-header {
+  position: absolute;
+  top: 78px;        /* quest-header와 동일한 오프셋 */
+  left: 0;
+  right: 0;
+  height: 24px;     /* 라인 높이 */
+  display: flex;
+  align-items: center;     /* 수직 중앙 */
+  justify-content: center; /* 제목 중앙 */
+
+  h1 {
+    font-size: 18px;
+    font-weight: 700;      /* ← 너는 Bold 원했음. 400 원하면 여기만 400으로 바꿔 */
+    line-height: 24px;
+    margin: 0;
+  }
+
+  .back {
+    position: absolute;
+    left: 27px;     /* #root 기준 27px */
+    width: 12px;
+    height: 15px;
+    cursor: pointer;
+  }
+
+  .alert {
+    position: absolute;
+    right: 26px;    /* #root 기준 26px */
+    width: 18px;
+    height: 22px;
+    cursor: pointer;
+  }
+}
+
+.settings-card {
+  width: 340px;
+  height: 214px;
+  border-radius: 14px;
+  background: #F2F2F2;
+  margin: 50px auto 0;
+  padding: 18px 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.row {
+  width: 100%;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+
+  .row-text {
+    color: $blue-ink;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .nav-icon {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.divider {
+  width: 305px;
+  height: 1px;
+  background: #d2d2d2;
+  margin: 0 auto;
+}
+
+.switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+
+  input {
+    display: none;
+  }
+
+  .slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #c7c7c7;
+  }
+
+  .slider::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: left 0.2s ease;
+  }
+
+  input:checked + .slider {
+    background: #183E70;
+  }
+
+  input:checked + .slider::after {
+    left: 23px;
+  }
+}
+
+.actions {
+  margin-top: 55px;
+  display: flex;
+  flex-direction: column;
+  gap: 29px;
+  align-items: center;
+}
+
+.action-card {
+  width: 340px;
+  height: 60px;
+  border-radius: 14px;
+  background: #F2F2F2;
+  border: 0;
+  color: $blue-ink;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.action-card.danger {
+  color: #ff2b2b;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  width: 300px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-sizing: border-box;
+  text-align: center;
+
+  p {
+    margin: 0 0 16px;
+    color: #111;
+    font-size: 14px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+
+    button {
+      min-width: 96px;
+      height: 36px;
+      border-radius: 8px;
+      border: 0;
+      background: #e9eef7;
+      cursor: pointer;
+    }
+
+    .danger {
+      background: #ffe5e5;
+      color: #ff2b2b;
+      font-weight: 700;
+    }
+  }
+}
