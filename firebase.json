@@ -17,19 +17,27 @@
         "firebase-debug.*.log",
         "*.local"
       ]
-    },
-    {
-      "source": "dooop-functions",
-      "codebase": "dooop-functions",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ]
     }
   ],
+  "hosting": {
+    "public": "build",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "/api/login",        "function": "login" },
+      { "source": "/api/logout",       "function": "logout" },
+      { "source": "/api/checkSession", "function": "checkSession" },
+      { "source": "**", "destination": "/index.html" }
+    ],
+    "headers": [
+      {
+        "source": "/api/**",
+        "headers": [
+          { "key": "Access-Control-Allow-Credentials", "value": "true" },
+          { "key": "Cache-Control", "value": "no-store" }
+        ]
+      }
+    ]
+  },
   "emulators": {
     "auth": {
       "port": 9099
