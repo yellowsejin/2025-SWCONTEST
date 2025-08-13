@@ -1,7 +1,5 @@
 const functions = require('firebase-functions/v1');
-const admin     = require('firebase-admin');
-const db         = admin.firestore();
-const FieldValue = admin.firestore.FieldValue;
+const admin = require('firebase-admin');
 
 const runtimeOpts = {
   timeoutSeconds: 120,
@@ -24,12 +22,12 @@ const purchaseFurniture = functions
       throw new functions.https.HttpsError('invalid-argument', '가구 ID를 전달해야 합니다.');
     }
 
-    const userRef  = db.collection('users').doc(uid);
-    const furniRef = db.collection('furnitures').doc(furnitureId); // ✅ 컬렉션 이름 확인
+    const userRef = db.collection('users').doc(uid);
+    const furniRef = db.collection('furnitures').doc(furnitureId);
 
     // 🔄 트랜잭션 실행
-    await db.runTransaction(async tx => {
-      const userSnap  = await tx.get(userRef);
+    const result = await db.runTransaction(async tx => {
+      const userSnap = await tx.get(userRef);
       const furniSnap = await tx.get(furniRef);
 
       if (!userSnap.exists) {
@@ -39,13 +37,13 @@ const purchaseFurniture = functions
         throw new functions.https.HttpsError('not-found', '가구 정보를 찾을 수 없습니다.');
       }
 
-      const userData   = userSnap.data();
-      const furniture  = furniSnap.data();
+      const userData = userSnap.data();
+      const furniture = furniSnap.data();
 
-      const userPoint  = userData.point || 0;
-      const userLevel  = userData.level || 1;
+      const userPoint = userData.point || 0;
+      const userLevel = userData.level || 1;
       const unlockLevel = furniture.levelRequired || furniture.unlockLevel || 1;
-      const price      = furniture.price || 0;
+      const price = furniture.price || 0;
 
       // 🚫 레벨 부족
       if (userLevel < unlockLevel) {
@@ -57,26 +55,34 @@ const purchaseFurniture = functions
         throw new functions.https.HttpsError('failed-precondition', '포인트가 부족합니다.');
       }
 
-      // ✅ 포인트 차감 및 배열에 추가
+      // ✅ 포인트 차감
       tx.update(userRef, {
-        point: FieldValue.increment(-price),
-        furnitureOwned: FieldValue.arrayUnion(furnitureId)
+        point: FieldValue.increment(-price)
       });
 
-      // 🗃️ 서브컬렉션에 구매 정보 저장
-      tx.set(
-        userRef.collection('ownedFurnitures').doc(furnitureId),
-        {
-          name: furniture.name || '',
-          price,
-          rewardCoins: furniture.rewardCoins || furniture.coinReward || 0,
-          levelRequired: unlockLevel,
-          purchasedAt: FieldValue.serverTimestamp()
-        }
-      );
+      const furnitureData = {
+        name: furniture.name || '',
+        price,
+        rewardCoins: furniture.rewardCoins || furniture.coinReward || 0,
+        levelRequired: unlockLevel,
+        purchasedAt: FieldValue.serverTimestamp()
+      };
+
+      // 🗃️ 구매 정보 저장
+      tx.set(userRef.collection('owned').doc(furnitureId), furnitureData);
+      tx.set(userRef.collection('ownedFurnitures').doc(furnitureId), furnitureData);
+
+      // 🔄 업데이트 후 포인트 확인
+      const updatedUserSnap = await tx.get(userRef);
+      const newPoint = updatedUserSnap.exists ? updatedUserSnap.data().point || 0 : 0;
+
+      return { newPoint };
     });
 
-    return { success: true };
+    return {
+      success: true,
+      newPoint: result.newPoint
+    };
   });
 
 module.exports = purchaseFurniture;
