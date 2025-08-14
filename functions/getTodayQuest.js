@@ -1,67 +1,70 @@
 const functions = require("firebase-functions/v1");
-const admin     = require("firebase-admin");
-const db        = admin.firestore();
+const admin = require("firebase-admin");
+const db = admin.firestore();
 
-/**
- * 하루 퀘스트 5개 랜덤 생성 및 조회
- */
 const getTodayQuest = functions
-  .runWith({
-   timeoutSeconds: 300,
-    memory: "512MB",
-  })
+  .runWith({ timeoutSeconds: 300, memory: "512MB" })
   .https.onCall(async (_, context) => {
     if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "로그인이 필요합니다."
-      );
+      throw new functions.https.HttpsError("unauthenticated", "로그인이 필요합니다.");
     }
 
-  const uid   = context.auth.uid;
-  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+    const uid = context.auth.uid;
 
-  // 사용자별 오늘의 퀘스트 문서 참조
-  const dailyRef = db
-    .collection("users").doc(uid)
-    .collection("dailyQuests").doc(today);
+    // 한국 시간 YYYY-MM-DD
+    const today = (() => {
+      const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
+      const y = now.getUTCFullYear();
+      const m = String(now.getUTCMonth() + 1).padStart(2, "0");
+      const d = String(now.getUTCDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    })();
 
-  const snap = await dailyRef.get();
-  if (snap.exists) {
-      // 기존에 객체 배열로 저장돼 있던 것도, 새로 문자열 배열로 저장된 것도 모두 커버
-    const raw = snap.data().quests || [];
-    return raw.map(q => typeof q === "string" ? q : q.text);
-  }
-    
-  // 전체 퀘스트 목록에서 ID만 가져오기
-  const allSnap = await db.collection("quests").get();
-  const allIds  = allSnap.docs.map(doc => doc.id);
+    const dailyRef = db.collection("users").doc(uid).collection("dailyQuests").doc(today);
 
-  // Fisher–Yates 셔플
-  for (let i = allIds.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [allIds[i], allIds[j]] = [allIds[j], allIds[i]];
-  }
+    // 이미 생성된 오늘 퀘스트 있으면 그대로 반환 (+ 상태 포함)
+    const snap = await dailyRef.get();
+    if (snap.exists) {
+      const { questIds = [], status = {} } = snap.data() || {};
+      const quests = await Promise.all(
+        questIds.map(async (id) => {
+          const qSnap = await db.collection("quests").doc(id).get();
+          const data = qSnap.data() || {};
+          const rewarded = !!(status[id]?.rewardGiven);
+          return {
+            id,
+            text: data.text || "",
+            rewardCoins: data.rewardCoins || 0,
+            state: rewarded ? "rewarded" : "idle",
+          };
+        })
+      );
+      return quests; // ← 기존처럼 배열 반환
+    }
 
-  // 상위 5개 뽑기
-  const pickIds = allIds.slice(0, 5);
+    // 없으면 새로 5개 추출하고 status 맵 초기화
+    const allIds = (await db.collection("quests").get()).docs.map((d) => d.id);
+    for (let i = allIds.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allIds[i], allIds[j]] = [allIds[j], allIds[i]];
+    }
+    const pickIds = allIds.slice(0, 5);
 
-  const quests = await Promise.all(
-    pickIds.map(async id => {
-      const defSnap = await db.collection("quests").doc(id).get();
-      const { text, rewardCoins } = defSnap.data();
-      return { text }; 
-    })
-  );
+    await dailyRef.set({
+      questIds: pickIds,
+      status: {}, // ✅ 맵 필드 초기화
+      generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
 
-
-  // 오늘의 퀘스트 저장
-  await dailyRef.set({
-    quests,
-    generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    // 처음에는 전부 idle
+    const quests = await Promise.all(
+      pickIds.map(async (id) => {
+        const qSnap = await db.collection("quests").doc(id).get();
+        const data = qSnap.data() || {};
+        return { id, text: data.text || "", rewardCoins: data.rewardCoins || 0, state: "idle" };
+      })
+    );
+    return quests; // ← 배열 유지
   });
-
-  return quests;
-});
 
 module.exports = getTodayQuest;

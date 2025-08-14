@@ -1,53 +1,63 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('./dooop-69a1b-firebase-adminsdk-fbsvc-d0497b5bd7.json');
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    projectId: "dooop-69a1b"
-});
+function requireEnv(name) {
+  const v = process.env[name];
+  if (!v) {
+    console.error(`Missing env: ${name}`);
+    process.exit(1);
+  }
+  return v;
+}
+
+// 1) 자격 증명: JSON 경로가 있으면 그걸로, 없으면 애플리케이션 기본 자격증명(ADC)
+const saPath = process.env.GOOGLE_APPLICATION_CREDENTIALS; // optional
+if (saPath) {
+  admin.initializeApp({
+    credential: admin.credential.cert(require(saPath)),
+  });
+  console.log('Using service account credentials from', saPath);
+} else {
+  admin.initializeApp(); // GOOGLE_APPLICATION_CREDENTIALS or gcloud auth application-default login
+  console.log('Using Application Default Credentials (ADC)');
+}
+
+const projectId = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT;
+if (!projectId) console.warn('No explicit projectId. Using default from credentials/context.');
 
 const db = admin.firestore();
 
-// 가구 목록 (category 필드 제거)
+// 가구 목록
 const furnitures = [
-  { id: 'bed',        name: '침대',          unlockLevel: 1,  price: 15, iconUrl: '', assetPath: '' },
-  { id: 'bathtub',    name: '욕조',       unlockLevel: 3,  price: 12, iconUrl: '', assetPath: '' },
-  { id: 'ac',         name: '벽걸이 에어컨',           unlockLevel: 4,  price: 15, iconUrl: '', assetPath: '' },
-  { id: 'fan',        name: '선풍기',     unlockLevel: 2,  price: 9,  iconUrl: '', assetPath: '' },
-  { id: 'wallLamp',   name: '벽걸이 조명',   unlockLevel: 1,  price: 6,  iconUrl: '', assetPath: '' },
-  { id: 'bookcase',   name: '책장',      unlockLevel: 1,  price: 14, iconUrl: '', assetPath: '' },
-  { id: 'chair',      name: '의자',   unlockLevel: 1,  price: 7,  iconUrl: '', assetPath: '' },
-  { id: 'nightstand', name: '2단 서랍',          unlockLevel: 2,  price: 8,  iconUrl: '', assetPath: '' },
-  { id: 'table',      name: '테이블',         unlockLevel: 2,  price: 10, iconUrl: '', assetPath: '' },
-  { id: 'tvConsole',  name: 'TV',        unlockLevel: 3,  price: 18, iconUrl: '', assetPath: '' },
-  { id: 'floorLamp',  name: '스탠드 조명',       unlockLevel: 2,  price: 9,  iconUrl: '', assetPath: '' },
-  { id: 'wardrobe',   name: '옷장',     unlockLevel: 3,  price: 16, iconUrl: '', assetPath: '' },
-  { id: 'toilet',     name: '모던 싱글 화장실',         unlockLevel: 4,  price: 11, iconUrl: '', assetPath: '' },
-  { id: 'plant',      name: '화분',    unlockLevel: 1,  price: 5,  iconUrl: '', assetPath: '' },
-  { id: 'wallArt',    name: '그림',       unlockLevel: 1,  price: 6,  iconUrl: '', assetPath: '' },
-  { id: 'slippers',   name: '실내 슬리퍼',       unlockLevel: 1,  price: 3,  iconUrl: '', assetPath: '' },
-  { id: 'sink',       name: '세면대',            unlockLevel: 3,  price: 13, iconUrl: '', assetPath: '' },
-  { id: 'deskLamp',   name: '탁상조명',         unlockLevel: 2,  price: 6,  iconUrl: '', assetPath: '' }
+  { id: 'bed',        name: '침대',   unlockLevel: 1, price: 10,  iconUrl: '', assetPath: '' },
+  { id: 'desk',       name: '책상',   unlockLevel: 1, price: 10,  iconUrl: '', assetPath: '' },
+  { id: 'bookcase',   name: '책장',   unlockLevel: 1, price: 10,  iconUrl: '', assetPath: '' },
+  { id: 'chair',      name: '의자',   unlockLevel: 1, price: 10,  iconUrl: '', assetPath: '' },
+  { id: 'wardrobe',   name: '옷장',   unlockLevel: 1, price: 10,  iconUrl: '', assetPath: '' },
+  { id: 'fridge',     name: '냉장고', unlockLevel: 1, price: 10, iconUrl: '', assetPath: '' },
+  { id: 'computer',   name: '컴퓨터', unlockLevel: 1, price: 10, iconUrl: '', assetPath: '' },
+  { id: 'sofa',       name: '소파',   unlockLevel: 2, price: 10, iconUrl: '', assetPath: '' },
 ];
 
 async function seed() {
   const batch = db.batch();
-  furnitures.forEach(f => {
+  furnitures.forEach((f) => {
     const ref = db.collection('furnitures').doc(f.id);
     batch.set(ref, {
       name: f.name,
       unlockLevel: f.unlockLevel,
       price: f.price,
       iconUrl: f.iconUrl || '',
-      assetPath: f.assetPath || ''
-    });
+      assetPath: f.assetPath || '',
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
   });
   await batch.commit();
   console.log('✅ Furnitures seeded!');
-  process.exit(0);
 }
 
-seed().catch(err => {
-  console.error('❌ Seed failed:', err);
-  process.exit(1);
-});
+seed()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error('❌ Seed failed:', err);
+    process.exit(1);
+  });
