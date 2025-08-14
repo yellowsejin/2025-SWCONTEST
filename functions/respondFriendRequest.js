@@ -1,51 +1,82 @@
-const functions = require('firebase-functions/v1');
-const admin     = require('firebase-admin');
-const db        = admin.firestore();
+const functions = require("firebase-functions/v1");
+const admin = require("firebase-admin");
+const db = admin.firestore();
 const FieldValue = admin.firestore.FieldValue;
 
-const runtimeOpts = {
-  timeoutSeconds: 120,
-  memory: '512MB'
-};
-
 const respondFriendRequest = functions
-  .region('us-central1')
-  .runWith(runtimeOpts)
+  .runWith({ timeoutSeconds: 60, memory: "256MB" })
   .https.onCall(async (data, context) => {
-    if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated','로그인이 필요합니다.');
-    }
-    const me        = context.auth.uid;
-    const { requestId, accept } = data;
-    if (!requestId || typeof accept !== 'boolean') {
-      throw new functions.https.HttpsError('invalid-argument','requestId와 accept 필요');
-    }
+    try {
+      if (!context.auth) {
+        throw new functions.https.HttpsError("unauthenticated", "로그인이 필요합니다.");
+      }
+      const uid = context.auth.uid;
 
-    const reqRef  = db.collection('friendRequests').doc(requestId);
-    const reqSnap = await reqRef.get();
-    if (!reqSnap.exists) {
-      throw new functions.https.HttpsError('not-found','요청을 찾을 수 없습니다.');
-    }
-    const { from, to, status } = reqSnap.data();
-    if (to !== me) {
-      throw new functions.https.HttpsError('permission-denied','내게 온 요청이 아닙니다.');
-    }
-    if (status !== 'pending') {
-      throw new functions.https.HttpsError('failed-precondition','이미 처리된 요청입니다.');
-    }
+      const requestId = data?.requestId;
+      // action 문자열 또는 accept/reject 불리언 모두 허용
+      let action = data?.action;
+      if (!action) {
+        if (data?.accept === true) action = "accept";
+        else if (data?.accept === false || data?.reject === true) action = "reject";
+      }
+      if (!requestId || !["accept", "reject"].includes(String(action))) {
+        throw new functions.https.HttpsError("invalid-argument", "requestId/action이 잘못됨");
+      }
 
-    if (accept) {
-      const userRef  = db.collection('users').doc(me);
-      const otherRef = db.collection('users').doc(from);
-      await db.runTransaction(tx => {
-        tx.update(userRef,  { friends: FieldValue.arrayUnion(from) });
-        tx.update(otherRef, { friends: FieldValue.arrayUnion(me)   });
-        tx.update(reqRef,   { status: 'accepted'                  });
+      const reqRef = db.collection("friendRequests").doc(requestId);
+
+      await db.runTransaction(async (tx) => {
+        const reqSnap = await tx.get(reqRef);
+        if (!reqSnap.exists) {
+          throw new functions.https.HttpsError("not-found", "요청 문서가 없음");
+        }
+        const req = reqSnap.data();
+
+        // 스키마 호환: fromId/toId 또는 from/to 모두 지원
+        const to   = req.toId   ?? req.to;
+        const from = req.fromId ?? req.from;
+
+        if (!to || !from) {
+          throw new functions.https.HttpsError("failed-precondition", "요청 필드가 손상됨");
+        }
+        if (to !== uid) {
+          throw new functions.https.HttpsError("permission-denied", "요청 대상이 아님");
+        }
+        if (req.status && req.status !== "pending") {
+          return; // 이미 처리됨
+        }
+
+        if (action === "accept") {
+          const meRef    = db.collection("users").doc(uid);
+          const otherRef = db.collection("users").doc(from);
+
+          // 양방향 친구 문서 생성 (서브컬렉션)
+          tx.set(meRef.collection("friends").doc(from), {
+            uid: from,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+          tx.set(otherRef.collection("friends").doc(uid), {
+            uid,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+
+          tx.update(reqRef, {
+            status: "accepted",
+            respondedAt: FieldValue.serverTimestamp(),
+          });
+        } else {
+          tx.update(reqRef, {
+            status: "rejected",
+            respondedAt: FieldValue.serverTimestamp(),
+          });
+        }
       });
-      return { success:true, message:'친구가 되었습니다.' };
-    } else {
-      await reqRef.update({ status: 'rejected' });
-      return { success:true, message:'친구 요청을 거절했습니다.' };
+
+      return { ok: true };
+    } catch (err) {
+      if (err instanceof functions.https.HttpsError) throw err;
+      console.error("[respondFriendRequest]", err);
+      throw new functions.https.HttpsError("internal", err?.message || "Internal error");
     }
   });
 
