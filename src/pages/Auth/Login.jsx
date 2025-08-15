@@ -11,15 +11,18 @@ export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ idOrEmail: "", password: "" });
   const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false); // ✅ 중복 제출 방지
 
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
+    setMsg(""); // ✅ 입력 중에는 안내문구 리셋
   };
 
   // 아이디 → 이메일 매핑 (usernames/{idLower} → { email })
   const resolveEmail = async (idOrEmail) => {
-    const v = idOrEmail.trim();
+    const v = (idOrEmail || "").trim();
+    if (!v) throw new Error("이메일 또는 아이디를 입력하세요.");
     if (v.includes("@")) return v; // 이미 이메일
     const snap = await getDoc(doc(db, "usernames", v.toLowerCase()));
     if (!snap.exists()) throw new Error("존재하지 않는 아이디입니다.");
@@ -30,21 +33,36 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (loading) return; // ✅ 중복 호출 방지
+
+    const idOrEmail = form.idOrEmail.trim();
+    const password = form.password;
+
+    if (!idOrEmail || !password) {
+      setMsg("❌ 이메일/아이디와 비밀번호를 입력하세요.");
+      return;
+    }
+
+    setLoading(true);
     setMsg("로그인 중…");
     try {
-      const email = await resolveEmail(form.idOrEmail);
-      const cred = await signInWithEmailAndPassword(auth, email, form.password);
+      const email = await resolveEmail(idOrEmail);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
 
       // (선택) 토큰/유저 정보 저장
-      const token = await cred.user.getIdToken();
-      localStorage.setItem("idToken", token);
-      localStorage.setItem("uid", cred.user.uid);
-      localStorage.setItem("email", cred.user.email || email);
+      try {
+        const token = await cred.user.getIdToken();
+        localStorage.setItem("idToken", token);
+        localStorage.setItem("uid", cred.user.uid);
+        localStorage.setItem("email", cred.user.email || email);
+      } catch {
+        // 토큰 저장 실패는 치명적이지 않으므로 무시
+      }
 
       // ✅ 공개 프로필 동기화 (표시명 추정: 이메일 입력이면 기존 displayName 유지)
-      const displayNameGuess = form.idOrEmail.includes("@")
+      const displayNameGuess = idOrEmail.includes("@")
         ? (cred.user.displayName || "사용자")
-        : form.idOrEmail.trim();
+        : idOrEmail;
       await upsertPublicProfile(cred.user, { displayName: displayNameGuess });
 
       setMsg("✅ 로그인 성공!");
@@ -52,14 +70,19 @@ export default function Login() {
     } catch (err) {
       const m = err?.code || err?.message || "로그인 실패";
       let friendly = "로그인 실패";
-      if (m.includes("auth/invalid-credential") || m.includes("auth/wrong-password"))
+      if (m.includes("auth/invalid-credential") || m.includes("auth/wrong-password")) {
         friendly = "비밀번호가 올바르지 않습니다.";
-      else if (m.includes("auth/user-not-found"))
+      } else if (m.includes("auth/user-not-found")) {
         friendly = "존재하지 않는 계정입니다.";
-      else if (m.includes("존재하지 않는 아이디"))
+      } else if (m.includes("존재하지 않는 아이디")) {
         friendly = "존재하지 않는 아이디입니다.";
+      } else if (m.includes("이메일 또는 아이디를 입력하세요")) {
+        friendly = "이메일/아이디를 입력하세요.";
+      }
       setMsg(`❌ ${friendly}`);
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,6 +103,7 @@ export default function Login() {
             placeholder="이메일 또는 아이디"
             value={form.idOrEmail}
             onChange={onChange}
+            autoComplete="username"            // ✅ 자동완성 힌트
           />
           <input
             type="password"
@@ -87,8 +111,11 @@ export default function Login() {
             placeholder="비밀번호 입력"
             value={form.password}
             onChange={onChange}
+            autoComplete="current-password"    // ✅ 자동완성 힌트
           />
-          <button type="submit">로그인</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "로그인 중…" : "로그인"}
+          </button>
         </form>
 
         {msg && <p className="login-msg">{msg}</p>}

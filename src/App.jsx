@@ -1,3 +1,4 @@
+// src/App.jsx
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
@@ -171,14 +172,10 @@ function AppContent() {
           }
         />
 
-        {/* ✅ 친구 캘린더도 같은 컴포넌트로 렌더 (URL 파라미터로 모드 전환) */}
+        {/* ✅ 친구 공개 캘린더: 공개 보기 용도 → 보호 해제 */}
         <Route
           path="/calendar/:friendId"
-          element={
-            <Protected authed={authed} loading={loading}>
-              <MonthlyCalendar />
-            </Protected>
-          }
+          element={<MonthlyCalendar />}
         />
 
         {/* ✅ 그 외 모든 경로는 월캘린더로 정리 */}
