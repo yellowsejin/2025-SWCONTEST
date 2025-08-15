@@ -1,0 +1,145 @@
+.signup-page {
+  width: 393px;
+  height: 844px;
+  margin: 0 auto;
+  background-color: #cfd8e6;
+  box-sizing: border-box;
+
+  /* 상단 135px로 맞춤 */
+  padding: 135px 24px 131px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: sans-serif;
+
+  
+  .submit-button {
+    width: 100% !important;
+    height: 40px !important;
+    border: none;
+    border-radius: 26px !important;
+    padding: 0 !important;
+    line-height: normal !important;
+    background-color: #9ea7b3;
+    color: #fff;
+    font-weight: 700;
+    cursor: not-allowed;
+    transition: background-color 0.2s;
+
+    &.active {
+      background-color: #405971;
+      cursor: pointer;
+    }
+  }
+}
+
+.signup-page .form-group input {
+  background: #fff;
+  color: #000;
+}
+
+/* 포커스 때도 흰색 유지 */
+.signup-page .form-group input:focus {
+  background: #fff;
+  outline: none;
+}
+
+/* ✅ Chrome/Safari 자동완성 배경 강제 흰색 */
+.signup-page .form-group input:-webkit-autofill,
+.signup-page .form-group input:-webkit-autofill:hover,
+.signup-page .form-group input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000;
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  box-shadow: 0 0 0 1000px #fff inset;
+  transition: background-color 5000s ease-in-out 0s; /* 색 번쩍임 방지 */
+}
+
+/* ✅ Firefox 자동완성 */
+.signup-page .form-group input:-moz-autofill {
+  box-shadow: 0 0 0 1000px #fff inset;
+  -moz-text-fill-color: #000;
+}
+
+/* 타이틀은 위치만 잡고 아래 여백은 적당히 */
+.signup-title {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 0 49px; // 타이틀과 첫 필드 간 간격
+}
+
+.form-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  /* 각 ‘작성하는 곳’ 블록 간 간격 41px 고정 */
+  margin-bottom: 20px;
+
+  label {
+    align-self: flex-start;
+    font-size: 12px;
+    color: #969696; /* 기본 글씨색 */
+    margin-bottom: 6px;
+  }
+
+  input {
+    width: 342px;
+    height: 40px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 100px;
+    box-sizing: border-box;
+    background: #fff;
+  }
+
+  small {
+    font-size: 10px;
+    color: #999;
+    margin-top: 6px; // 입력창과 설명 사이 소간격
+  }
+}
+
+.required {
+  color: #F85252;
+}
+
+/* 체크박스 블록은 폼 블록 다음에 오고 적당히 띄움 */
+.checkbox-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  gap: 8px;
+  margin-bottom: 24px; // 체크박스와 버튼 사이
+}
+
+/* ✅ 자동완성에서도 모서리 유지 */
+.signup-page .form-group input:-webkit-autofill,
+.signup-page .form-group input:-webkit-autofill:hover,
+.signup-page .form-group input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000;
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  box-shadow: 0 0 0 1000px #fff inset;
+  border-radius: 100px !important;
+}
+
+.signup-page form .form-group input,
+.signup-page .form-group input[type="text"],
+.signup-page .form-group input[type="email"],
+.signup-page .form-group input[type="password"],
+.signup-page .form-group input[name="id"] {
+  width: 342px;
+  height: 40px;
+  padding: 10px 14px;
+  border: 0 !important;
+  border-radius: 100px !important;
+  background: #fff !important;
+  color: #000;
+  box-shadow: none !important;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  overflow: hidden; /* 자동완성 배경이 모서리 밖으로 새는 것 방지 */
+}

@@ -1,0 +1,126 @@
+@use "../_header.scss" as *;
+
+.DailyList-wrapper {
+  position: relative;
+  width: 393px;
+  min-height: 844px;
+  margin: 0 auto;
+  background: #c6d0e0;
+  border-radius: 32px;
+  overflow: hidden;
+  line-height: normal;
+
+  .page-header {
+    @include top-header(27px, 26px);
+    .back { width: 12px; height: 14.5px; }
+    .gear { width: 20px; height: 20px; }
+  }
+
+  .date-text {
+    position: absolute;
+    top: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    line-height: 22px;
+    margin: 0;
+  }
+
+  .category-btn {
+    position: absolute;
+    top: 149px;
+    right: 24px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: #dfe6f2;
+    border: 1px solid #0c2b46;
+    cursor: pointer;
+  }
+
+  .category-list {
+    position: absolute; left: 24px; right: 24px;
+    top: 210px;
+    padding-bottom: 120px;
+  }
+
+  .category-section { margin-bottom: 24px; }
+
+  .cat-header {
+    height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center;
+    padding: 0 12px; gap: 10px;
+    background: #fff;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+  }
+
+  .cat-dot  { width: 18px; height: 18px; border-radius: 50%; }
+  .cat-name { font-size: 16px; font-weight: 700; color: #062540; margin: 0; }
+
+  .add-btn {
+    margin-left: auto;
+    width: 28px; height: 28px;
+    border-radius: 8px; border: 0;
+    background: #eef3fb; cursor: pointer;
+    font-size: 18px; line-height: 28px;
+  }
+
+  .todo-list { list-style: none; padding-left: 20px; margin: 10px 0 0; }
+
+  .todo-item {
+    display: flex; align-items: center; gap: 10px; margin: 10px 0;
+    cursor: pointer;
+  }
+
+  /* 체크박스: 카테고리 색으로 채우기 */
+  .todo-check {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--check-color);
+    cursor: pointer;
+  }
+  .todo-check:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--check-color) 60%, white 40%);
+    outline-offset: 2px;
+  }
+
+  .todo-title {
+    font-size: 14px; color: #213042;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+
+  /* 비공개 표시 */
+  .lock { font-size: 13px; opacity: .8; }
+
+  .empty-hint {
+    color: #334; font-size: 13px;
+    background: rgba(255,255,255,.65);
+    border-radius: 12px; padding: 16px; text-align: center;
+  }
+}
+
+/* 카테고리 팝업 공통 */
+.cat-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,.3);
+  display: flex; align-items: center; justify-content: center; z-index: 20;
+}
+.cat-dialog {
+  width: 320px; background: #fff; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0,0,0,.25);
+}
+.cat-dialog-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid #eee;
+  h3 { margin: 0; font-size: 16px; font-weight: 700; }
+  .close { border: 0; background: none; font-size: 18px; cursor: pointer; }
+}
+.cat-dialog-body { padding: 12px 16px; }
+.cat-form { display: flex; gap: 8px; margin-bottom: 12px; }
+.cat-form input[type="text"] { flex: 1; height: 36px; padding: 0 10px; border: 1px solid #ccd; border-radius: 8px; }
+.cat-form input[type="color"] { width: 36px; height: 36px; padding: 0; border: 0; background: none; }
+.cat-form .primary { padding: 0 12px; border: 0; border-radius: 8px; background: #0c2b46; color: #fff; cursor: pointer; }
+
+.cat-list { list-style: none; margin: 0; padding: 0; max-height: 200px; overflow: auto; }
+.cat-list li { display: flex; align-items: center; gap: 8px; padding: 6px 2px; }
+.cat-list .dot { width: 12px; height: 12px; border-radius: 50%; }
+.cat-list .nm  { font-size: 14px; }

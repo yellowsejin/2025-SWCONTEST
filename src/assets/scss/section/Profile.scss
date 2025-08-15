@@ -1,0 +1,112 @@
+/* src/assets/scss/section/Profile.scss */
+$brand: #183E70;
+$text: #000;
+@use "../_header.scss" as *;
+
+.mypage{
+  position: relative; 
+  width:393px; min-height:844px; margin:0 auto; background:#c6d0e0;
+  padding:100px 22px 0;
+  box-sizing:border-box;
+}
+
+/* 헤더 */
+.mypage .Profile-header{
+  @include top-header(27px, 0px);   /* gear/alert 없음 → 오른쪽 갭 0 */
+  h1{
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 24px;
+    margin: 0;
+  }
+  .back{
+    width:12px; height:15px; cursor:pointer;
+    /* 이미지 베이스라인 간섭 방지 */
+    img{ width:12px; height:15px; display:block; }
+  }
+  /* gear/alert 안 쓰면 안전하게 숨김 */
+  .gear, .alert { display:none !important; }
+}
+
+.mypage .profile-tabs{
+  margin-top:42px; width:100%;
+  display:grid; grid-template-columns:repeat(3,1fr);
+  align-items:flex-end;
+}
+.mypage .profile-tabs .tab{
+  position:relative; border:0; background:none; cursor:pointer;
+  padding:0 0 13px; font-size:16px; line-height:24px;
+  color:#000; font-weight:400; text-align:center;     /* 비활성: 얇게/검정 */
+}
+/* 밑줄을 가운데 정렬 */
+.mypage .profile-tabs .tab::after{
+  content:""; position:absolute; left:50%; bottom:0;
+  width:132px; height:1px; background:#183E70; border-radius:2px;
+  transform:translateX(-50%) scaleX(0);   /* 132×0 상태 */
+  transform-origin:center; transition:transform .18s ease;
+}
+.mypage .profile-tabs .tab.active{ color:#183E70; font-weight:700; }
+.mypage .profile-tabs .tab.active::after{
+  transform:translateX(-50%) scaleX(1);  /* 활성화 시 펼쳐짐 */
+}
+
+/* 섹션 타이틀 – 언더바 바로 아래 느낌(간격 22px) */
+.mypage .section-row{
+  margin-top:22px; display:flex; align-items:center; gap:24px; margin-left: 10px;
+}
+.mypage .section-row .section-title{
+  font-size:16px; font-weight:700; color:$brand; line-height:24px; margin:0; margin-top: 15px;
+}
+.mypage .section-row .meta{
+  display:flex; align-items:center; gap: 8px;
+  .coin,.level{ display:inline-flex; align-items:center; gap:0px; margin-top: 15px;}
+  img{ width:28px; height:28px; }
+  .metric{ font-family:'Jersey 25', system-ui, sans-serif; font-size: 20px; line-height:20px; }
+}
+
+/* 카드 공통 – 시안처럼 라운드/그림자/패딩 */
+.mypage .card{
+  width:348px; margin:16px auto 0; background:#fff; border-radius:16px;
+  padding:18px 20px; box-sizing:border-box;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.mypage .card .row{ display:flex; align-items:center; justify-content:space-between; min-height:48px; gap:10px; }
+.mypage .card .divider{ height:1px; background:#e3e8ef; }
+
+/* 이름 행 – 인라인 입력 + 연필 */
+.mypage .profile-card .row.editable{ padding-top:2px; }
+.mypage .inline-input {
+  flex: 1 1 auto;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: none;              /* 모든 기본 border 제거 */
+  border-radius: 0;          /* 둥근 모서리 제거 */
+  outline: none;             /* 포커스시 파란/검은 라인 제거 */
+  box-shadow: none;          /* 일부 브라우저 기본 그림자 제거 */
+  font-size: 14px;
+  color: #183e70;
+}
+
+.mypage .inline-input.editing,
+.mypage .inline-input:focus{ outline:none; border-bottom-color:$brand; }
+.mypage .icon-btn{ background:none; border:0; padding:0; cursor:pointer; }
+.mypage .trailing-icon{ width:12px; height:14px; display:block; }
+.mypage .subtext{ font-size:14px; color:#183e70; }
+
+/* 보안 섹션 */
+.mypage .security-title{ margin:24px 0 0; font-size:16px; font-weight:700; color:$brand; line-height:24px; margin-left: 10px;}
+.mypage .security-card .row{ justify-content:space-between; }
+.mypage .security-card .row-text{ font-size:14px; font-weight: 400;}
+
+
+/* 탭 링크 기본 밑줄 전부 제거 + 색은 탭 규칙을 따르게 */
+.mypage .profile-tabs a.tab,
+.mypage .profile-tabs a.tab:link,
+.mypage .profile-tabs a.tab:visited,
+.mypage .profile-tabs a.tab:hover,
+.mypage .profile-tabs a.tab:active {
+  text-decoration: none !important;
+  -webkit-text-decoration: none !important;
+  display: inline-block;
+}

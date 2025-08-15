@@ -1,0 +1,136 @@
+/* ===== Quest.scss (scoped) ===== */
+
+#quest-root {
+  position: relative;
+  width: 393px;
+  height: 852px;
+  margin: 0 auto;
+  background: #c6d0e0;
+  border-radius: 32px;
+  overflow: hidden;
+
+  /* 혹시 전역 line-height 누수 대비 */
+  line-height: normal;
+}
+
+/* Header */
+#quest-root .quest-header {
+  position: absolute;
+  top: 78px; left: 0; right: 0;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#quest-root .quest-header .title {
+  font-size: 18px;
+  font-weight: 700; /* (디자인 변경 시 400으로) */
+  line-height: 24px;
+  margin: 0;
+}
+#quest-root .quest-header .back {
+  position: absolute; left: 27px;
+  width: 12px; height: 15px;
+  cursor: pointer;
+}
+#quest-root .quest-header .gear {
+  position: absolute; right: 26px;
+  width: 20px; height: 20px;
+  cursor: pointer;
+}
+
+/* Point row */
+#quest-root .point-row {
+  position: absolute;
+  top: 120px; left: 30px;
+  display: flex; align-items: center;
+  gap: 5px;
+}
+#quest-root .point-row .coin { width: 29px; height: 29px; }
+#quest-root .point-row .point-text { font-weight: 700; }
+
+/* 카드 리스트 */
+#quest-root .card-list {
+  position: absolute; top: 173px; left: 0; right: 0;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px;
+}
+
+/* 카드 */
+#quest-root .card {
+  width: 360px; height: 70px;
+  background: #fff;
+  border-radius: 15px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 12px 0 14px; box-sizing: border-box;
+  border: 1px solid transparent;
+  transition: opacity .2s, border-color .2s;
+}
+#quest-root .card.is-completed { border-color: #e04545; }
+#quest-root .card.is-rewarded { opacity: 0.5; }
+
+#quest-root .left { display: flex; align-items: center; gap: 12px; }
+#quest-root .texts { display: flex; flex-direction: column; }
+#quest-root .q-title { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
+#quest-root .q-point { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+#quest-root .q-point img { width: 14px; height: 14px; }
+
+/* 버튼 */
+#quest-root .btn {
+  width: 64px; height: 30px;
+  border-radius: 100px; border: none;
+  color:#fff; font-size:12px; cursor:pointer;
+}
+#quest-root .btn.start { background:#405971; }
+#quest-root .btn.done  { background:#9aa3ab; }
+#quest-root .btn.reward{ background:#e04545; }
+
+/* 친구에게 뽐내기 */
+#quest-root .brag-btn {
+  margin-top: 37px;
+  width: 360px; height: 70px;
+  border: none; border-radius: 13px;
+  background: rgba(6, 37, 64, 0.7);
+  color: #fff; font-size: 16px; cursor: pointer;
+}
+
+/* 팝업 */
+#quest-root .popup {
+  position:absolute; inset:0; display:grid; place-items:center;
+}
+#quest-root .popup-box {
+  width: 393px; height: 171px;
+  background: rgba(255, 249, 190, 0.7);
+  display:grid; place-items:center;
+  /* no border-radius */
+  font-weight:700;
+}
+
+
+/* ==== 강제 복구 패치 (겹침/줄바꿈 이슈 방지) ==== */
+#quest-root .left { align-items: flex-start; } /* 이모지 아이콘 커서 위아래 안 겹치게 */
+
+#quest-root .q-title,
+#quest-root .q-point {
+  position: static !important;   /* 혹시 전역에서 absolute 먹은 경우 차단 */
+}
+
+#quest-root .q-title {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px !important;  /* 줄간격 고정 */
+  white-space: normal;            /* 한 줄 강제 금지 */
+}
+
+#quest-root .q-point {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px !important;
+}
+
+#quest-root .q-point img { width: 14px; height: 14px; flex: 0 0 14px; }
+#quest-root .texts { line-height: normal !important; } /* 전역 line-height 누수 차단 */

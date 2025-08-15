@@ -1,0 +1,132 @@
+/* ========= 공통 색 ========== */
+$ink: #000;
+$brand: #183E70;
+$surface: #F2F2F2;
+$cardShadow: 0 6px 20px rgba(0,0,0,0.16);
+
+/* ========= 팝업 컨테이너 ========== */
+.C-popup {
+  width: 353px;
+  height: 380px;
+  background: $surface;
+  border-radius: 16px;
+  box-shadow: $cardShadow;
+  position: relative;
+  padding: 0;            /* 내부 섹션에서 패딩 관리 */
+  overflow: hidden;      /* 상단/하단 라인 깔끔하게 */
+
+  /* 상단 헤더 */
+  .popup-header {
+    position: relative;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    padding: 0 16px;
+
+    .title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0;
+      color: $ink;
+    }
+
+    .close-btn {
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      font-size: 18px;
+      line-height: 28px;
+      cursor: pointer;
+    }
+  }
+
+  /* 신규 카테고리 입력 행 */
+  .new-category {
+    display: grid;
+    grid-template-columns: 32px 1fr 32px;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+
+    .color-picker {
+      width: 32px; height: 32px; border-radius: 6px;
+      border: 1px solid #aaa; overflow: hidden; display: block;
+    }
+    .color-input {
+      width: 100%; height: 100%;
+      padding: 0; border: none; outline: none;
+      appearance: none; -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    .name-input {
+      height: 32px;
+      padding: 0 10px;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 14px;
+      &::placeholder { color: #9aa0a6; }
+    }
+
+    .add-btn {
+      width: 32px; height: 32px;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 20px;
+      line-height: 30px;
+      cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+  }
+
+  /* 리스트 */
+  .category-list {
+    height: calc(380px - 44px - 56px); /* 전체 - 헤더 - 입력행(대략) */
+    overflow-y: auto;
+    padding: 4px 0;
+
+    .category-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e0e0e0;
+
+      .item-left {
+        display: flex; align-items: center; gap: 10px;
+      }
+
+      .color-dot {
+        width: 12px; height: 12px;
+        border-radius: 50%;
+        border: 1px solid rgba(0,0,0,0.2);
+      }
+
+      .name {
+        font-weight: 700; /* 스샷처럼 굵게 */
+        color: $ink;
+      }
+
+      .delete-btn {
+        border: none; background: transparent; padding: 0; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+
+        .delete-icon {
+          width: 18px; height: 18px; display: block; object-fit: contain;
+        }
+      }
+    }
+  }
+}
+
+/* ========= 헤더 옆 “카테고리” 버튼 (76x32, r10, 내부 1px 검정선) ========== */
+

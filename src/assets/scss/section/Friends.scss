@@ -1,0 +1,173 @@
+/* ===== Friends 전체 래퍼 ===== */
+#friends-root { position: relative; }
+
+/* ===== 상단 헤더 ===== */
+#friends-root .friends-header{
+  position:absolute; top:78px; left:0; right:0; height:24px;
+  display:flex; align-items:center; justify-content:center; z-index:5;
+}
+#friends-root .friends-header .title{ font-size:18px; font-weight:700; line-height:24px; margin:0; }
+#friends-root .friends-header .back{ position:absolute; left:27px; width:12px; height:15px; cursor:pointer; }
+#friends-root .friends-header .gear{ position:absolute; right:26px; width:20px; height:20px; cursor:pointer; }
+
+/* ===== AddFriend 화면: 흐름 배치 ===== */
+.friends-container.flow{
+  font-family:'Pretendard',sans-serif;
+  position:relative;
+  padding: calc(78px + 24px + 33px) 24px 120px; /* 헤더 아래부터 시작 */
+  display:flex; flex-direction:column; align-items:center;
+
+  --gap:21px;
+  --left-w:190px;
+  --right-w:170px;
+}
+
+/* ── 검색 박스 + 아이콘/드롭다운 ── */
+.search-wrap{
+  width:380px; max-width:100%;
+  position:relative;
+  margin: 0 auto 12px;
+}
+.search-wrap input{
+  width:100%; height:43px;
+  background:#f2f2f2; border:1px solid #000; border-radius:415px;
+  padding: 0 40px 0 16px;  /* 아이콘 공간 40px */
+  font-size:16px;
+}
+.search-wrap .search-icon{
+  position:absolute; right:14px; top:50%; transform:translateY(-50%);
+  width:24px; height:24px; border:0; background:transparent;
+  background-image:url("/img/Search.png"); background-repeat:no-repeat; background-position:center; background-size:20px 20px;
+  cursor:pointer;
+}
+.search-wrap .search-dropdown{
+  position:absolute; left:0; right:0; top: calc(100% + 6px);
+  background:#fff; border:1px solid #e2e5ea; border-radius:12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  max-height: 220px; overflow:auto; padding:6px 0; z-index:6;
+}
+.search-wrap .search-dropdown li{
+  padding:10px 12px; display:flex; align-items:center; justify-content:space-between;
+  font-size:14px; cursor:pointer;
+}
+.search-wrap .search-dropdown li:hover{ background:#f6f8fb; }
+.search-wrap .search-dropdown .u-name{ font-weight:600; }
+.search-wrap .search-dropdown .u-id{ color:#555; }
+
+/* ── 받은신청 + 내친구: AddFriend 상단 줄 ── */
+.friends-row{
+  width:380px; max-width:100%;
+  display:flex; align-items:center; justify-content:space-between;
+  gap: var(--gap);
+  margin: 12px auto 0;
+}
+.received-box{
+  width:var(--left-w); height:50px; border-radius:15px; background:#DFDFDF;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 14px; gap:10px; box-sizing:border-box; cursor:pointer;
+}
+.received-box .left{ display:flex; align-items:center; gap:10px; min-width:0; }
+.received-box .texts{ display:flex; flex-direction:column; line-height:1.1; }
+.received-box .texts .label{ font-size:14px; font-weight:700; color:#000; }
+.received-box .texts .id{ font-size:12px; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px; }
+.received-box .req-badge{ width:8px; height:8px; border-radius:50%; background:#183E70; }
+.received-box .next{ width:18px; height:18px; background:url("/img/next.png") no-repeat center/contain; }
+
+.friends-btn{
+  width:var(--right-w); height:50px; line-height:50px;
+  border-radius:15px; background:#405971; color:#fff; text-align:center;
+  text-decoration:none; display:block;
+}
+
+/* ===== AddFriend 화면: 리스트 (내 친구 버튼 아래 21px) ===== */
+.requests-list{
+  width:380px; max-width:100%;
+  margin: var(--gap) auto 0;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.requests-list .empty{ margin-top:12px; text-align:center; font-size:14px; color:#333; }
+
+/* ===== 공통: 카드 ===== */
+#friends-root .friend-card{
+  position: static !important; /* 예전 absolute 무력화 */
+  top:auto !important; left:auto !important; transform:none !important;
+  z-index:auto !important; margin:0 !important;
+}
+.friend-card{
+  display:flex; justify-content:space-between; align-items:center;
+  width:92%; height:50px; padding:10px 15px;
+  background:#fff; border-radius:15px; box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.friend-card .info{
+  display:flex; align-items:center; gap:6px; font-size:16px; line-height:24px; font-weight:600;
+  min-width:0;              /* ← 말줄임 위해 필수 */
+}
+.friend-card .name{
+  font-weight:400;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  max-width:100px;          /* 이름 최대 폭 */
+}
+.friend-card .sep{ color:#555; flex-shrink:0; }
+.friend-card .uid{
+  font-weight:400; color:#333;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  max-width:140px;          /* ID 최대 폭 */
+}
+.btn-group{ display:flex; gap:10px; }
+
+/* ===== 버튼 ===== */
+.request-btn, .requested-btn{
+  width:90px; height:32px; border-radius:10px; font-size:14px; font-weight:500;
+  display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;
+}
+.request-btn{ background:#4caf50; color:#fff; }
+.requested-btn{ background:#ccc; color:#fff; }
+
+.reject-btn,.accept-btn{
+  min-width:56px; height:32px; padding:0 10px; border:0; border-radius:10px; font-size:14px; cursor:pointer;
+}
+.reject-btn{ background:#e9edf1; }
+.accept-btn{ background:#2f3a4a; color:#fff; }
+
+.visit-btn{ background:#737373; }
+.calendar-btn{ background:#737373; color:#fff; }
+
+/* ===== ▼ 받은 신청 전용 화면 =====
+   - 헤더는 absolute 유지
+   - 본문은 #root 기준 정확히 160px 아래에서 시작 */
+.requests-page{
+  padding-top:160px;
+}
+.requests-page .requests-body{
+  padding:0 24px 120px;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.requests-page .friend-card{
+  width:340px; margin:0 auto;
+}
+
+/* ===== ▼ 내 친구 전용 화면 ===== */
+.friends-list-page{
+  padding-top:160px;     /* 헤더 아래 160px 고정 */
+}
+.friends-list-page .friends-body{
+  padding:0 24px 120px;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.friends-list-page .friend-card{
+  width:340px; margin:0 auto;
+}
+.friends-list-page .empty{
+  text-align:center; color:#333; width:340px; margin:0 auto;
+}
+
+/* ===== (선택) input 안에서 img 쓰는 경우 정렬용 ===== */
+.search-box { position: relative; }
+.search-icon { position: absolute; top: 50%; right: 14px; transform: translateY(-50%); width: 20px; height: 20px; border: none; background: none; padding: 0; cursor: pointer; }
+.search-icon img { display:block; width:100%; height:100%; }
+
+/* ===== ▼ 추가: |와 ID 숨기기 ===== */
+.friend-card .sep,
+.friend-card .uid {
+  display: none !important;
+}

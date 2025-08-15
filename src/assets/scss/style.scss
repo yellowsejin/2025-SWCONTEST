@@ -1,0 +1,4 @@
+@charset "UTF-8";
+
+@import "./App";                // ✅ 새로 추가한 전역 스타일
+@import "./section/section";    // 기존 페이지별 스타일들

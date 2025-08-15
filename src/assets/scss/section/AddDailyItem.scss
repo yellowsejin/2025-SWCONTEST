@@ -1,0 +1,132 @@
+/* === 오버레이: 화면 전체 중앙 + 최상단 === */
+.popup-layer {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 37, 64, 0.12);
+  z-index: 9999;
+}
+
+.popup-card { display: contents; }
+
+/* 팝업 컨테이너 */
+.A-popup {
+  --accent: #183E70;
+  width: 353px;
+  max-height: calc(100vh - 160px);
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0,0,0,.25);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  animation: modal-pop .16s ease-out;
+}
+
+@keyframes modal-pop {
+  from { transform: translateY(-4px) scale(.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1);       opacity: 1; }
+}
+
+/* 헤더 */
+.popup-header {
+  position: sticky; top: 0;
+  display: flex; justify-content: center; align-items: center;
+  font-weight: 800; font-size: 18px;
+  padding: 8px 4px 12px;
+  background: #fff; border-bottom: 1px solid #E5E7EB;
+  z-index: 1;
+}
+.popup-header h2 { margin: 0; line-height: 24px; color: #111827; }
+.popup-header .close-btn {
+  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  width: 28px; height: 28px; font-size: 20px; color: #374151; border-radius: 6px;
+}
+.popup-header .close-btn:hover { background: #F3F4F6; }
+
+.popup-body { display: flex; flex-direction: column; flex-grow: 1; gap: 12px; padding-top: 8px; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group + .form-group { margin-top: 2px; }
+label { font-size: 13px; color: #6B7280; }
+
+input[type="text"], textarea, select, input[type="date"] {
+  background-color: #FAFAFA;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #D1D5DB;
+  font-size: 14px; line-height: 20px;
+  box-sizing: border-box; width: 100%;
+  outline: none;
+}
+input[type="text"]:focus, textarea:focus, select:focus, input[type="date"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(24,62,112,.15);
+  background: #fff;
+}
+textarea { resize: vertical; min-height: 96px; }
+
+/* 기간 입력 */
+.range-inputs { display: grid; grid-template-columns: 1fr 16px 1fr; align-items: center; gap: 8px; }
+.range-inputs span { text-align: center; color: #9CA3AF; }
+
+/* 버튼 */
+.button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+.submit-btn, .delete-btn { height: 44px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; border: 0; }
+.submit-btn:active, .delete-btn:active { transform: translateY(1px); }
+.submit-btn { background: var(--accent); color: #fff; }
+.delete-btn { background: #F3F4F6; color: #374151; }
+
+.A-popup::-webkit-scrollbar { width: 6px; }
+.A-popup::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 6px; }
+
+/* -------------------- 스위치 (공개/비공개) -------------------- */
+
+/* 접근성용 숨김(실제 체크박스 숨김) */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+}
+
+.public-row {
+  display: flex;
+  flex-direction: row;          /* form-group의 column 덮어쓰기 */
+  align-items: center;
+  justify-content: space-between;  /* 텍스트는 왼쪽, 스위치는 오른쪽 */
+  width: 100%;
+}
+.public-row .field-title { font-size: 14px; color: #3b4651; }
+
+/* 스위치 트랙은 label 요소 */
+.switch-track {
+  position: relative;
+  width: 46px; height: 26px;
+  border-radius: 999px;
+  background: #d7dbe0;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+  cursor: pointer;
+  /* 혹시 남아있는 기본 라인하이트/패딩 제거 */
+  line-height: 0; padding: 0; display: inline-block;
+}
+
+/* 스위치 노브 */
+.switch-knob {
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.18);
+  transition: left .2s ease;   /* ← transform 대신 left 사용 */
+}
+
+/* 상태별 색/위치 */
+.switch-track.on  { background: #8ED080; }
+.switch-track.on  .switch-knob { left: 23px; } /* 46 - 20 - 3 = 23px */
+.switch-track.off .switch-knob { left: 3px;  }
+
+.public-row.disabled { opacity: .6; pointer-events: none; }

@@ -1,0 +1,158 @@
+/* level 전용 SCSS — Profile.scss는 건들지 않음 */
+$brand: #183E70;
+$ink: #000;
+
+/* #root에서 탭/언더바까지 190px 확보 (after-header는 네 JSX에 이미 있음) */
+.after-header {
+  padding-top: 0px;
+}
+
+/* 언더바로부터 14px 아래 시작 */
+.level-page {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 타이틀 행: "현재 레벨 n Level" + 진행 숫자(17px 간격) */
+.level-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start; /* ← 왼쪽 정렬 */
+    gap: 17px; /* Level과 13/25 사이 간격 */
+    width: 100%; /* 전체 폭 차지하도록 */
+
+    .title {
+      margin: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    /* "현재 레벨" 텍스트를 JSX에 넣으면 이 스타일이 적용됨 */
+    .current-label {
+      font-size: 36px;
+      font-weight: 700;
+      color: $brand;
+      line-height: 1;
+    }
+
+    /* "{n} Level" */
+    .lvl-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: $brand;
+      line-height: 1;
+    }
+
+    /* 진행 숫자: 13 / 25 */
+    .progress-number {
+      font-size: 16px;
+      font-weight: 700;
+      color: $ink;
+      line-height: 1;
+      transform: translateY(6px); /* 베이스라인 보정(필요 없으면 제거) */
+    }
+  }
+
+  /* 막대 그래프: 345×12, r=6, 배경 #fff, 채움 $brand */
+  .level-bar {
+    margin-top: 10px;
+    width: 345px;
+    height: 12px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      background: $brand;
+      border-radius: 6px;
+      transition: width 300ms ease;
+    }
+  }
+
+  /* 정보 박스: 345×40, r=9, shadow + blur 4 */
+  .next-info {
+    margin-top: 21px;
+    width: 345px;
+    height: 40px;
+    border-radius: 9px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 그림자 & 블러 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    backdrop-filter: blur(4px);
+
+    p {
+        margin: 0;
+        font-size: 10px;   /* 보통체, 검정 */
+        font-weight: 400;
+        color: #000;
+        margin-left: 12px; /* 왼쪽 여백 */
+        justify-content: flex-start; /* ← 왼쪽 정렬 */
+        gap: 17px; /* Level과 13/25 사이 간격 */
+        width: 100%; /* 전체 폭 차지하도록 */
+    }
+  }
+}
+
+.level-grid {
+  margin-top: 21px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 90px);
+  justify-content: center;
+  gap: 37px; /* 간격 줄인 버전 */
+  padding-bottom: 40px;
+  max-height: calc(90px * 5 + 30px * 4);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* 스크롤바 완전 제거 */
+  scrollbar-width: none; /* Firefox */
+}
+.level-grid::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+
+
+/* 카드 */
+.level-card {
+  width: 90px;
+  height: 90px;
+  border-radius: 18px;
+  background: #f7f7fb;
+  display: grid;
+  place-items: center;
+  position: relative;
+
+  img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    pointer-events: none;
+  }
+
+  .level-text {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 24px;  /* 시안 느낌 유지 */
+    font-weight: 700;
+    color: #000;
+  }
+}

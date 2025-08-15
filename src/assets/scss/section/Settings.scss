@@ -1,0 +1,109 @@
+/* src/assets/scss/section/Settings.scss */
+@use "../_header.scss" as *;  /* 경로는 네 프로젝트 구조에 맞춰 조정 */
+
+$blue-ink: #183e70;
+
+.settings-page {
+  padding-top: 136px; /* 78(header top) + 24(height) + 34(여유) = 136 */
+  width: 393px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ✅ 공통 헤더 믹스인 적용 (gear는 안씀) */
+.settings-header {
+  @include top-header(27px);
+  
+  /* 필요 시 아이콘 크기만 조정 */
+  .back   { width: 12px; height: 15px; }
+}
+
+/* 이하 기존 카드/스위치/모달 스타일은 유지 */
+.settings-card {
+  width: 340px;
+  height: 214px;
+  border-radius: 14px;
+  background: #F2F2F2;
+  margin: 50px auto 0;
+  padding: 18px 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.row {
+  width: 100%;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+
+  .row-text { color: $blue-ink; font-size: 13px; font-weight: 700; }
+  .nav-icon { width: 12px; height: 12px; }
+}
+
+.divider { width: 305px; height: 1px; background: #d2d2d2; margin: 0 auto; }
+
+.switch {
+  position: relative; width: 44px; height: 24px;
+
+  input { display: none; }
+
+  .slider {
+    position: absolute; inset: 0;
+    border-radius: 999px; background: #c7c7c7;
+  }
+
+  .slider::after {
+    content: ""; position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; transition: left 0.2s ease;
+  }
+
+  input:checked + .slider { background: #183E70; }
+  input:checked + .slider::after { left: 23px; }
+}
+
+.actions {
+  margin-top: 55px; display: flex; flex-direction: column;
+  gap: 29px; align-items: center;
+}
+
+.action-card {
+  width: 340px; height: 60px; border-radius: 14px;
+  background: #F2F2F2; border: 0; color: $blue-ink;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+
+  &.danger { color: #ff2b2b; }
+}
+
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+
+.modal {
+  width: 300px; background: #fff; border-radius: 12px; padding: 20px;
+  box-sizing: border-box; text-align: center;
+
+  p { margin: 0 0 16px; color: #111; font-size: 14px; }
+
+  .modal-actions {
+    display: flex; gap: 10px; justify-content: center;
+
+    button {
+      min-width: 96px; height: 36px; border-radius: 8px; border: 0;
+      background: #e9eef7; cursor: pointer;
+    }
+
+    .danger { background: #ffe5e5; color: #ff2b2b; font-weight: 700; }
+  }
+}
+
+/* iOS 스타일 토글 점프 방지: ::before 제거 */
+.slider::before { content: none !important; }

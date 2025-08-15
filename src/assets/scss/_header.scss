@@ -1,0 +1,31 @@
+@mixin top-header($left-gap: 27px, $right-gap: 26px) {
+  position: absolute;
+  top: 78px; left: 0; right: 0;
+  height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5;
+
+  .title, h1 {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 24px;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .back, .gear, .alert {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    background: none; border: 0; padding: 0; margin: 0;
+    cursor: pointer; user-select: none;
+    line-height: 0;     /* 텍스트 라인 높이 간섭 제거 */
+    display: block;
+  }
+
+  .back { left: $left-gap; }
+  .gear, .alert { right: $right-gap; }
+
+  /* 이미지가 들어오면 베이스라인 간섭 제거 */
+  .back img, .gear img, .alert img { display: block; }
+}
