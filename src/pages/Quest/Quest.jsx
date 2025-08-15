@@ -1,7 +1,12 @@
+// src/pages/Quest/Quest.jsx (또는 현재 경로 그대로)
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/scss/section/Quest.scss";
 import { onAuth, devLogin, callGetTodayQuest, callCompleteQuest } from "../../firebase";
+
+// ✅ 추가: 포인트 실시간 구독을 위한 Firestore import
+import { getFirestore, doc, onSnapshot } from "firebase/firestore";
+import { app } from "../../firebase";
 
 export default function Quest() {
   const navigate = useNavigate();
@@ -15,13 +20,15 @@ export default function Quest() {
   // 👇 추가: 초기 복원 완료 여부
   const [hydrated, setHydrated] = useState(false);
 
-  // ====== 날짜 키 & 스토리지 유틸 ======
-  const todayStr = getTodayStr(); // "YYYY-MM-DD" (로컬 기준)
+  // ====== 날짜 키 & 스냅샷 유틸 ======
+  const todayStr = getTodayStr(); // "YYYY-MM-DD"
   const storageKeyRef = useRef(null);
   const getKey = (u) => `dooop.quest.${u}.${todayStr}`;
 
+  const db = getFirestore(app); // ✅ Firestore 인스턴스
+
   function getTodayStr() {
-    const d = new Date(); // 로컬(Asia/Seoul) 기준
+    const d = new Date();
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
@@ -53,26 +60,26 @@ export default function Quest() {
     localStorage.setItem(getKey(u), JSON.stringify(snapshot));
   }
 
-  // ✅ 자동 저장: 초기 복원(hydrated) 이후에만 동작하도록 **가드**
+  // ✅ 자동 저장: 초기 복원(hydrated) 이후에만
   useEffect(() => {
     if (!uid || !hydrated) return;
     saveSnapshot(uid, { points, quests });
   }, [uid, points, quests, hydrated]);
 
-  // ====== 팝업 자동 닫힘 ======
+  // 팝업 자동 닫힘
   useEffect(() => {
     if (!popup.open) return;
     const t = setTimeout(() => setPopup({ open: false, amount: 0 }), 1000);
     return () => clearTimeout(t);
   }, [popup.open]);
 
-  // ====== 로그인 상태 ======
+  // 로그인 상태 감시
   useEffect(() => {
     const unsub = onAuth(async (user) => {
       if (!user) {
         try {
           if (import.meta?.env?.DEV) {
-            await devLogin(); // 개발 환경에서만
+            await devLogin();
             return;
           }
         } catch {}
@@ -85,87 +92,100 @@ export default function Quest() {
     return () => unsub();
   }, [navigate]);
 
-  // ====== 초기 로드(스냅샷 → 서버 병합) ======
+  // ✅ 포인트 실시간 구독 (최소 수정 핵심)
+  // users/{uid}.point 를 그대로 UI에 반영
+  useEffect(() => {
+    if (!uid) return;
+    const ref = doc(db, "users", uid);
+    const off = onSnapshot(ref, (ds) => {
+      const p = ds?.data()?.point;
+      if (typeof p === "number") setPoints(p);
+    });
+    return () => off();
+  }, [uid, db]);
+
+  // 초기 로드(스냅샷 → 서버 병합)
   useEffect(() => {
     if (!uid) return;
 
     let cancelled = false;
-    setHydrated(false); // 👈 새로 uid로 진입하면 다시 비수화 상태
+    setHydrated(false);
 
     (async () => {
       setLoading(true);
 
-      // 1) 로컬 스냅샷 우선 적용 (즉시 화면)
+      // 1) 스냅샷 즉시 반영
       const snap = loadSnapshot(uid);
       if (snap && !cancelled) {
         setPoints(snap.points ?? 0);
         setQuests(snap.quests ?? []);
-        // setLoading(false); // 체감 속도 위해 놔둬도 되고, 아래 finally에서 정리됨
       }
 
-      // 2) 서버 목록 불러오기 → 스냅샷과 병합 (포인트는 건드리지 않음)
+      // 2) 서버 목록 불러오기 → 병합
       try {
-        const { data } = await callGetTodayQuest(); // → [{id, text, rewardCoins}]
+        const resp = await callGetTodayQuest();
+        const payload = resp?.data ?? resp;
+
+        // 서버 퀘스트 배열 안전 파싱
+        const rawList = Array.isArray(payload)
+          ? payload
+          : (payload?.data ?? payload?.quests ?? []);
         const serverList =
-          (data || []).map((q) => ({
+          (rawList || []).map((q) => ({
             id: q.id,
-            title: q.text || "",
-            reward: q.rewardCoins ?? 0,
+            title: q.text || q.title || "",
+            reward: q.rewardCoins ?? q.reward ?? 0,
             state: "idle",
           })) ?? [];
 
+        // 퀘스트는 병합 (로컬 우선)
         setQuests((prev) => {
           const byId = new Map(prev.map((q) => [q.id, q]));
-          const merged = serverList.map((s) => {
+          return serverList.map((s) => {
             const local = byId.get(s.id);
             return local ? { ...s, state: local.state ?? s.state } : s;
           });
-          return merged;
         });
+
+        // 포인트는 이제 onSnapshot이 실시간으로 넣어주므로 여기선 건드리지 않음
       } catch (e) {
         console.error(e);
         if (!snap) alert("퀘스트를 불러오는 중 오류가 발생했습니다.");
       } finally {
         if (!cancelled) {
           setLoading(false);
-          setHydrated(true); // 👈 이제부터 autosave 켜도 됨
+          setHydrated(true);
         }
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [uid]);
 
-  // ====== 상태 변경 헬퍼 (저장 X: autosave가 처리)
+  // ===== 상태 변경 헬퍼
   const setQuestState = (id, next) => {
     setQuests((prev) => prev.map((q) => (q.id === id ? { ...q, state: next } : q)));
   };
 
-  // 시작/완료: 로컬 상태만 변경(서버 호출 없음)
   const onStart = (q) => setQuestState(q.id, "in_progress");
   const onComplete = (q) => setQuestState(q.id, "completed");
 
-  // 보상받기: 서버 응답(newPoint)로 확정 (저장은 autosave가 처리)
+  // 보상받기
   const onReward = async (q) => {
     try {
-      if (q.state === "rewarded") return; // 이중 클릭 방지
-
+      if (q.state === "rewarded") return;
       const resp = await callCompleteQuest({ questId: q.id });
-      const payload = resp?.data ?? resp; // httpsCallable() or fetch() 대응
+      const payload = resp?.data ?? resp;
       if (payload?.success) {
         const added = typeof payload.added === "number" ? payload.added : (q.reward ?? 0);
-        const newPt = typeof payload.newPoint === "number" ? payload.newPoint : (points + added);
-
-        setPoints(newPt);
+        // UI 즉시 반응용 낙관적 업데이트 (실제 정답은 onSnapshot으로 교정됨)
+        setPoints((v) => v + added);
         setQuestState(q.id, "rewarded");
         setPopup({ open: true, amount: added });
       } else {
         throw new Error("보상 처리 실패");
       }
     } catch (e) {
-      // 백엔드가 이미 지급된 퀘스트에 대해 "already-exists"를 던지는 경우
       const code = e?.code || e?.message || "";
       if (String(code).includes("already-exists")) {
         setQuestState(q.id, "rewarded");
@@ -176,7 +196,6 @@ export default function Quest() {
     }
   };
 
-  // 친구에게 뽐내기 (그대로)
   const onBragToFriends = () => {
     const completed = quests.filter((q) => q.state === "rewarded" || q.state === "completed");
     alert(`친구에게 ${completed.length}개의 퀘스트 현황을 보냈어요!`);
@@ -197,7 +216,6 @@ export default function Quest() {
 
   return (
     <div id="quest-root">
-      {/* 헤더 */}
       <header className="quest-header">
         <img className="back" src="/img/back.png" alt="뒤로" onClick={() => navigate("/calendar")} />
         <h1 className="title">퀘스트</h1>
@@ -233,11 +251,9 @@ export default function Quest() {
           </article>
         ))}
 
-        {/* 친구에게 뽐내기 버튼 */}
         <button className="brag-btn" onClick={onBragToFriends}>친구에게 뽐내기</button>
       </div>
 
-      {/* 지급 팝업 */}
       {popup.open && (
         <div className="popup" role="dialog" onClick={() => setPopup({ open: false, amount: 0 })}>
           <div className="popup-box">
