@@ -69,17 +69,26 @@ export default function AddFriend() {
   };
 
   // ✅ "검색 제출" : 아이콘 클릭 또는 Enter
+  // 최소 수정 포인트: 선택값이 없으면 입력값 자체를 선택으로 사용
   const submitSearch = () => {
     const typed = qText.trim();
     if (!typed) {
       setShowCard(false);
       return;
     }
-    // 선택값이 없으면 결과의 첫 항목을 기본 선택
-    if (!selected && results.length > 0) {
-      setSelected(results[0]);
+
+    if (!selected) {
+      if (results.length > 0) {
+        setSelected(results[0]);
+      } else {
+        setSelected({ id: typed, name: typed }); // ← 입력값을 그대로 선택으로
+      }
+    } else {
+      const cur = selected.id || selected.userId || selected.name || "";
+      if (cur !== typed) setSelected({ id: typed, name: typed }); // ← 입력이 바뀌었으면 갱신
     }
-    setShowCard(true);      // ← 이제 카드 보이기
+
+    setShowCard(true);
     setOpenDrop(false);
   };
 

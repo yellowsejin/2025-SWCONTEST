@@ -1,15 +1,14 @@
-// src/pages/Calendar/DailyList.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useCategory } from "../../contexts/CategoryContext";
 import { useSchedule } from "../../contexts/ScheduleContext";
 import { useEffect, useMemo, useState } from "react";
-import { getAuth } from "firebase/auth"; // 그대로 사용
+import { getAuth } from "firebase/auth"; // ▼ 추가
 import Category from "./Category";
 import AddDailyItem from "./AddDailyItem";
 import "../../assets/scss/section/DailyList.scss";
 
-/* ====== completeTodo HTTP 유틸 (기존 그대로) ====== */
-const PROJECT_ID = "dooop-69a1b";
+/* ====== ▼ 추가: 백엔드 completeTodo HTTP 호출 유틸 ====== */
+const PROJECT_ID = "dooop-69a1b"; // 네 Firebase 프로젝트 ID
 const COMPLETE_TODO_URL = `https://us-central1-${PROJECT_ID}.cloudfunctions.net/completeTodo`;
 
 async function completeTodoHttp(uid, todoId) {
@@ -44,7 +43,6 @@ const formatKR = (d) =>
 export default function DailyList() {
   const { date } = useParams(); // "YYYY-MM-DD"
   const nav = useNavigate();
-
   const { categories } = useCategory();
   const { schedules, schedulesByDate, loading, toggleTodoDone } = useSchedule();
 
@@ -61,15 +59,11 @@ export default function DailyList() {
     return [];
   }, [schedulesByDate, schedules, dayKey]);
 
-  // ✅ 최소수정: 카테고리 버킷을 id와 name 모두로 매핑
   const grouped = useMemo(() => {
     const byKey = new Map();
-    categories.forEach((c) => {
-      const bucket = { cat: c, items: [] };
-      if (c?.id)   byKey.set(String(c.id), bucket);   // id 접근
-      if (c?.name) byKey.set(String(c.name), bucket); // name 접근
-    });
-
+    categories.forEach((c) =>
+      byKey.set(String(c.id ?? c.name), { cat: c, items: [] })
+    );
     itemsForThisDate.forEach((t) => {
       const key =
         t.categoryId != null
@@ -79,17 +73,7 @@ export default function DailyList() {
       if (!byKey.has(key)) return;
       byKey.get(key).items.push(t);
     });
-
-    // Map -> 고유 버킷 리스트(중복 제거)
-    const uniq = new Set();
-    const buckets = [];
-    for (const [, bucket] of byKey.entries()) {
-      if (!uniq.has(bucket)) {
-        uniq.add(bucket);
-        buckets.push(bucket);
-      }
-    }
-    return buckets;
+    return Array.from(byKey.values());
   }, [categories, itemsForThisDate]);
 
   const [showCategory, setShowCategory] = useState(false);
@@ -112,7 +96,7 @@ export default function DailyList() {
   // ✅ 체크 ON 시 서버 먼저 → 성공하면 로컬 토글
   const onToggle = async (e, todo) => {
     e.stopPropagation();
-    const next = !(todo.done ?? todo.completed ?? false);
+    const next = !todo.done;
 
     if (next) {
       try {
@@ -166,12 +150,17 @@ export default function DailyList() {
 
       <div className="category-list">
         {!loading && grouped.length === 0 ? (
-          <p className="empty-hint">카테고리를 추가하면 여기서부터 보입니다.</p>
+          <p className="empty-hint">
+            카테고리를 추가하면 여기서부터 보입니다.
+          </p>
         ) : (
           grouped.map(({ cat, items }) => (
             <section key={cat.id ?? cat.name} className="category-section">
               <div className="cat-header">
-                <div className="cat-dot" style={{ background: cat.color }} />
+                <div
+                  className="cat-dot"
+                  style={{ background: cat.color }}
+                />
                 <h2 className="cat-name">{cat.name}</h2>
                 <button
                   className="add-btn"
@@ -185,27 +174,23 @@ export default function DailyList() {
               <ul className="todo-list">
                 {items.map((t) => (
                   <li
-                    key={
-                      t.id ||
-                      t.todoId ||
-                      t._id ||
-                      `${t.title}-${t.startDate || t.date || dayKey}`
-                    }
+                    key={(t.id || t.title) + "-" + dayKey}
                     className="todo-item"
                     onClick={() => openEdit(t)}
                   >
                     <input
                       type="checkbox"
-                      /* ✅ 완료표시: done 없으면 completed도 인식 */
-                      checked={!!(t.done ?? t.completed ?? false)}
+                      checked={!!t.done}
                       onChange={(e) => onToggle(e, t)}
                       onClick={(e) => e.stopPropagation()}
                       className="todo-check"
                       style={{ "--check-color": cat.color }}
                     />
                     <span className="todo-title">
-                      {!(t.isPublic ?? t.public ?? true) && (
-                        <span className="lock" title="비공개">🔒</span>
+                      {!t.isPublic && (
+                        <span className="lock" title="비공개">
+                          🔒
+                        </span>
                       )}
                       {t.title}
                     </span>
