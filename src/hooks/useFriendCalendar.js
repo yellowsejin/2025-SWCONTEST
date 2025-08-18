@@ -1,76 +1,95 @@
-// src/hooks/useFriendCalendar.js
 import { useEffect, useState } from "react";
-import { getFirestore, collection, onSnapshot } from "firebase/firestore";
-import { app } from "../firebase";
+import { getFirestore, collection, doc, getDoc, onSnapshot } from "firebase/firestore";
+import { app } from "../firebase";  // ✅ 경로 수정
 
-// YYYY-MM-DD 문자열로 정규화
+// YYYY-MM-DD 문자열 변환
 function toYMD(v) {
   if (!v) return null;
-  // Firestore Timestamp?
   if (typeof v === "object" && typeof v.toDate === "function") {
     const d = v.toDate();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+      d.getDate()
+    ).padStart(2, "0")}`;
   }
-  // 이미 문자열?
   if (typeof v === "string") return v.slice(0, 10);
   return null;
 }
 
+// 공개 여부 확인
 function isPublicItem(it) {
   if (typeof it?.isPublic === "boolean") return it.isPublic;
   if (typeof it?.public === "boolean") return it.public;
   const s = String(it?.isPublic ?? it?.public ?? "").toLowerCase();
-  return s === "true"; // "true"/"false" 문자열 대응
+  return s === "true";
 }
 
-/**
- * 친구 UID의 공개 일정만 구독 (보안규칙이 공개 문서만 허용한다고 가정)
- * 컬렉션명: users/{friendUid}/calendar  (다르면 아래 경로만 바꿔줘)
- */
-export default function useFriendCalendar(friendUid) {
+export default function useFriendCalendar(myUid, friendDocId) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [friendUid, setFriendUid] = useState(null);
   const db = getFirestore(app);
 
+  // 1) 친구 UID 불러오기
+  useEffect(() => {
+    if (!myUid || !friendDocId) {
+      setLoading(false); // ✅ uid 없으면 바로 로딩 해제
+      return;
+    }
+
+    const ref = doc(db, "users", myUid, "friends", friendDocId);
+    console.log("🔍 친구 문서 확인:", ref.path);
+
+    getDoc(ref).then((snap) => {
+      if (snap.exists()) {
+        const uid = snap.data().uid;
+        console.log("✅ friendUid 읽힘:", uid);
+        setFriendUid(uid);
+        setLoading(false); // ✅ 친구 uid 읽었을 때도 로딩 해제
+      } else {
+        console.warn("❌ 친구 문서 없음:", myUid, friendDocId);
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.error("❌ 친구 문서 읽기 오류:", err);
+      setLoading(false);
+    });
+  }, [myUid, friendDocId, db]);
+
+  // 2) 친구 todos 구독
   useEffect(() => {
     if (!friendUid) return;
-    setLoading(true);
 
-    const colRef = collection(db, "users", friendUid, "calendar"); // ← 컬렉션명 다르면 여기만 수정
+    console.log("📂 구독 시작 → users/", friendUid, "/todos");
+    setLoading(true); // ✅ 새 구독 시작하면 로딩 켜기
+
+    const colRef = collection(db, "users", friendUid, "todos");
     const unsub = onSnapshot(
       colRef,
       (snap) => {
+        console.log("📥 todos 문서 개수:", snap.size);
+
         const arr = snap.docs.map((d) => {
           const raw = d.data();
-          const startDate = toYMD(raw.startDate) || toYMD(raw.date) || raw.startDate || raw.date;
-          const endDate =
-            toYMD(raw.endDate) ||
-            startDate || // end 없으면 start로 처리(단일 일자)
-            raw.endDate;
-
-        return {
+          return {
             id: d.id,
             ...raw,
-            startDate,
-            endDate,
+            startDate: toYMD(raw.startDate) || toYMD(raw.date),
+            endDate: toYMD(raw.endDate) || toYMD(raw.date),
           };
         });
 
-        // 공개만
+        console.log("📥 todos 데이터:", arr);
         setItems(arr.filter(isPublicItem));
-        setLoading(false);
+        setLoading(false); // ✅ 데이터 들어왔으니 로딩 해제
       },
       (err) => {
-        console.error("친구 캘린더 구독 오류:", err);
+        console.error("❌ 친구 todos 구독 오류:", err);
         setLoading(false);
       }
     );
 
     return () => unsub();
-  }, [friendUid]);
+  }, [friendUid, db]);
 
   return { items, loading };
 }

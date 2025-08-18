@@ -26,7 +26,8 @@ export default function AddFriend() {
 
   const functions = getFunctions(app);
   const callSendFriendRequest = httpsCallable(functions, "sendFriendRequest");
-  const callSearchUsers = httpsCallable(functions, "searchUsers");
+  // 🔥 최소 수정: searchUsers 연결 제거
+  // const callSearchUsers = httpsCallable(functions, "searchUsers");
 
   // 입력 디바운스 검색
   const timerRef = useRef();
@@ -43,19 +44,13 @@ export default function AddFriend() {
     }
 
     timerRef.current = setTimeout(async () => {
-      try {
-        const res = await callSearchUsers({ q: qText.trim(), limit: 10 });
-        const list = res?.data?.users || [];
-        setResults(list);
-        if (openDrop) setOpenDrop(true);
-      } catch {
-        // 함수 준비 전 임시 목업
-        const mock = ["sooDragon", "sungshin5678", "sungho777"]
-          .filter((id) => id.toLowerCase().includes(qText.trim().toLowerCase()))
-          .slice(0, 5)
-          .map((id) => ({ id, name: id }));
-        setResults(mock);
-      }
+      // 🔥 최소 수정: 백엔드 호출 제거하고 목업만 사용
+      const mock = ["sooDragon", "sungshin5678", "sungho777"]
+        .filter((id) => id.toLowerCase().includes(qText.trim().toLowerCase()))
+        .slice(0, 5)
+        .map((id) => ({ id, name: id }));
+      setResults(mock);
+      if (openDrop) setOpenDrop(true);
     }, 250);
 
     return () => timerRef.current && clearTimeout(timerRef.current);
