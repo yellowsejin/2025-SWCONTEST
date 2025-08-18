@@ -10,7 +10,6 @@ import { FriendProvider } from "./contexts/FriendContext.jsx";
 
 import BottomNav from "./components/ButtonNav";
 
-// ⚠️ 로그인 파일 경로 유지 (네 프로젝트 구조에 맞춤)
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 import FindId from "./pages/Auth/FindId";
@@ -27,13 +26,11 @@ import Level from "./pages/Settings/level.jsx";
 import FriendsRoutes from "./pages/Friends/FriendsRoutes.jsx";
 import AddDailyItem from "./pages/Calendar/AddDailyItem.jsx";
 
-// ✅ 네비 숨길 경로
 const HIDDEN_NAV_PREFIXES = [
   "/", "/signup", "/find-id", "/find-password",
   "/level", "/profile", "/settings"
 ];
 
-// ✅ 간단 보호 라우트 (새 파일 없이)
 function Protected({ authed, loading, children }) {
   if (loading) return <div style={{ padding: 24 }}>Loading…</div>;
   if (!authed) return <Navigate to="/" replace />;
@@ -46,7 +43,6 @@ function AppContent() {
     (p) => location.pathname === p || location.pathname.startsWith(p + "/")
   );
 
-  // 🔐 인증 상태
   const [authed, setAuthed] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -76,7 +72,6 @@ function AppContent() {
             </Protected>
           }
         />
-        {/* ✅ 파라미터 없는 /daily 제거 — 무조건 날짜가 있는 경우에만 진입 */}
         <Route
           path="/daily/:date"
           element={
@@ -85,7 +80,6 @@ function AppContent() {
             </Protected>
           }
         />
-
         <Route
           path="/quest"
           element={
@@ -162,6 +156,14 @@ function AppContent() {
             </Protected>
           }
         />
+        <Route
+          path="/friends/:friendId/calendar"
+          element={
+            <Protected authed={authed} loading={loading}>
+              <MonthlyCalendar />
+            </Protected>
+          }
+        />
 
         <Route
           path="/room/:friendId"
@@ -172,13 +174,7 @@ function AppContent() {
           }
         />
 
-        {/* ✅ 친구 공개 캘린더: 공개 보기 용도 → 보호 해제 */}
-        <Route
-          path="/calendar/:friendId"
-          element={<MonthlyCalendar />}
-        />
-
-        {/* ✅ 그 외 모든 경로는 월캘린더로 정리 */}
+        {/* 기본 리디렉트 */}
         <Route path="*" element={<Navigate to="/calendar" replace />} />
       </Routes>
 

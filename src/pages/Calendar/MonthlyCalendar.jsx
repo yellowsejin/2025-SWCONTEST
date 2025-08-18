@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSchedule } from "../../contexts/ScheduleContext";
 import { useCategory } from "../../contexts/CategoryContext";
 import useFriendCalendar from "../../hooks/useFriendCalendar";
+import { getAuth } from "firebase/auth";
 
 /* ---------- 카테고리/색상 유틸 ---------- */
 const resolveCategory = (item, categories) => {
@@ -31,17 +32,22 @@ const resolveCategory = (item, categories) => {
   return undefined;
 };
 
-function MonthlyCalendar() {
-  const { schedulesByDate } = useSchedule(); // 내 캘린더(기존)
+function MonthlyCalendar({ friendId: propFriendId }) {
+  const { schedulesByDate } = useSchedule();
   const { categories } = useCategory();
   const navigate = useNavigate();
 
-  // ▼ 친구 모드
-  const { friendId } = useParams();
-  const isFriendView = !!friendId;
+  // 🔑 내 uid
+  const auth = getAuth();
+  const myUid = auth.currentUser?.uid || null;
 
-  // ▼ 친구 공개 일정(훅 사용)
-  const { items: friendItems, loading: friendLoading } = useFriendCalendar(friendId);
+  // ▼ 친구 모드: props > URL
+  const { friendId: urlFriendId } = useParams();
+  const friendDocId = propFriendId || urlFriendId; // users/{내uid}/friends/{friendDocId}
+  const isFriendView = !!friendDocId;
+
+  // ▼ 친구 공개 일정(훅 사용) — 내 uid + friendDocId 둘 다 전달
+  const { items: friendItems, loading: friendLoading } = useFriendCalendar(myUid, friendDocId);
 
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -57,7 +63,7 @@ function MonthlyCalendar() {
   const yStr = String(currentYear);
   const mStr = String(currentMonth + 1).padStart(2, "0");
 
-  // ▼ 날짜 비교 보강: endDate 없으면 startDate로 대체, 앞 10자리만 비교
+  // ▼ 날짜 비교
   const isInDateRange = (item, ymd) => {
     const s = item?.startDate ? String(item.startDate).slice(0, 10) : null;
     const eRaw = item?.endDate ?? item?.startDate;
@@ -68,7 +74,7 @@ function MonthlyCalendar() {
 
   const handleDateClick = (day) => {
     const dateStr = `${yStr}-${mStr}-${String(day).padStart(2, "0")}`;
-    if (isFriendView) navigate(`/daily/${dateStr}?uid=${friendId}`);
+    if (isFriendView) navigate(`/daily/${dateStr}?uid=${friendDocId}`);
     else navigate(`/daily/${dateStr}`);
   };
 
