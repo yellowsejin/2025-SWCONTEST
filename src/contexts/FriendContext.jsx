@@ -56,17 +56,14 @@ export function FriendProvider({ children }) {
         const uniq = Array.from(new Set(uids.filter(Boolean)));
         const rows = await Promise.all(
           uniq.map(async (peerUid) => {
-            // users 우선 → 없으면 users_public
             let s = await getDoc(doc(db, "users", peerUid));
             if (!s.exists()) s = await getDoc(doc(db, "users_public", peerUid));
             const p = s.exists() ? (s.data() || {}) : {};
-
-            // ✅ 데이터 층에서는 기본 문자열(예: '이름없음', '로딩중...')을 절대 넣지 않음
             const name = safe(p.name) ?? safe(p.nickname) ?? undefined;
 
             return {
               uid: peerUid,
-              name, // undefined일 수 있음 → 렌더에서 `name ?? "로딩중..."` 등으로 처리
+              name, 
               userId: safe(p.userId) ?? safe(p.email) ?? peerUid,
             };
           })
@@ -75,7 +72,7 @@ export function FriendProvider({ children }) {
         setLoading(false);
       };
 
-      // 내 친구 목록 구독
+      // 내 친구 목록 구독 (최초 한 번만)
       unsubFriends = onSnapshot(
         collection(db, "users", u.uid, "friends"),
         (snap) => {
@@ -120,9 +117,6 @@ export function FriendProvider({ children }) {
       if (unsubRequests) unsubRequests();
     };
   }, [db]);
-
-  // ⚠️ 렌더하는 컴포넌트에서는 반드시 null 병합 연산자(??)를 사용하세요.
-  // 예) const displayName = selected?.name ?? selected?.nickname ?? "로딩중...";
 
   const value = useMemo(
     () => ({ friends, requests, loading, acceptRequest, rejectRequest }),

@@ -1,21 +1,20 @@
+// src/hooks/useFriendCalendar.js
 import { useEffect, useState } from "react";
-import { getFirestore, collection, doc, getDoc, onSnapshot } from "firebase/firestore";
-import { app } from "../firebase";  // ✅ 경로 수정
+import { getFirestore, collection, onSnapshot } from "firebase/firestore";
+import { app } from "../firebase";
 
-// YYYY-MM-DD 문자열 변환
+const db = getFirestore(app);
+
 function toYMD(v) {
   if (!v) return null;
-  if (typeof v === "object" && typeof v.toDate === "function") {
+  if (typeof v?.toDate === "function") {
     const d = v.toDate();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-      d.getDate()
-    ).padStart(2, "0")}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }
-  if (typeof v === "string") return v.slice(0, 10);
+  if (typeof v === "string") return v.slice(0,10);
   return null;
 }
 
-// 공개 여부 확인
 function isPublicItem(it) {
   if (typeof it?.isPublic === "boolean") return it.isPublic;
   if (typeof it?.public === "boolean") return it.public;
@@ -23,73 +22,51 @@ function isPublicItem(it) {
   return s === "true";
 }
 
-export default function useFriendCalendar(myUid, friendDocId) {
-  const [items, setItems] = useState([]);
+export default function useFriendCalendar(myUid, friendUid) {
+  const [schedules, setSchedules] = useState([]);
+  const [categories, setCategories] = useState([]);   // 🔥 추가
   const [loading, setLoading] = useState(true);
-  const [friendUid, setFriendUid] = useState(null);
-  const db = getFirestore(app);
+  const [error, setError] = useState(null);
 
-  // 1) 친구 UID 불러오기
   useEffect(() => {
-    if (!myUid || !friendDocId) {
-      setLoading(false); // ✅ uid 없으면 바로 로딩 해제
-      return;
-    }
+    if (!myUid || !friendUid) return;
 
-    const ref = doc(db, "users", myUid, "friends", friendDocId);
-    console.log("🔍 친구 문서 확인:", ref.path);
+    setLoading(true);
+    setError(null);
 
-    getDoc(ref).then((snap) => {
-      if (snap.exists()) {
-        const uid = snap.data().uid;
-        console.log("✅ friendUid 읽힘:", uid);
-        setFriendUid(uid);
-        setLoading(false); // ✅ 친구 uid 읽었을 때도 로딩 해제
-      } else {
-        console.warn("❌ 친구 문서 없음:", myUid, friendDocId);
-        setLoading(false);
-      }
-    }).catch((err) => {
-      console.error("❌ 친구 문서 읽기 오류:", err);
-      setLoading(false);
-    });
-  }, [myUid, friendDocId, db]);
-
-  // 2) 친구 todos 구독
-  useEffect(() => {
-    if (!friendUid) return;
-
-    console.log("📂 구독 시작 → users/", friendUid, "/todos");
-    setLoading(true); // ✅ 새 구독 시작하면 로딩 켜기
-
-    const colRef = collection(db, "users", friendUid, "todos");
-    const unsub = onSnapshot(
-      colRef,
+    // ✅ 친구 todos 구독
+    const todoRef = collection(db, "users", friendUid, "todos");
+    const unsubTodos = onSnapshot(
+      todoRef,
       (snap) => {
-        console.log("📥 todos 문서 개수:", snap.size);
-
-        const arr = snap.docs.map((d) => {
-          const raw = d.data();
-          return {
-            id: d.id,
-            ...raw,
-            startDate: toYMD(raw.startDate) || toYMD(raw.date),
-            endDate: toYMD(raw.endDate) || toYMD(raw.date),
-          };
+        const items = [];
+        snap.forEach((doc) => {
+          const data = doc.data();
+          if (isPublicItem(data)) {
+            items.push({ id: doc.id, ...data, date: toYMD(data.date) });
+          }
         });
-
-        console.log("📥 todos 데이터:", arr);
-        setItems(arr.filter(isPublicItem));
-        setLoading(false); // ✅ 데이터 들어왔으니 로딩 해제
+        setSchedules(items);
+        setLoading(false);
       },
       (err) => {
-        console.error("❌ 친구 todos 구독 오류:", err);
+        console.error(err);
+        setError("친구 일정을 가져오는 중 오류");
         setLoading(false);
       }
     );
 
-    return () => unsub();
-  }, [friendUid, db]);
+    // ✅ 친구 categories 구독
+    const catRef = collection(db, "users", friendUid, "categories");
+    const unsubCats = onSnapshot(catRef, (snap) => {
+      setCategories(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
 
-  return { items, loading };
+    return () => {
+      unsubTodos();
+      unsubCats();
+    };
+  }, [myUid, friendUid]);
+
+  return { schedules, categories, loading, error }; // 🔥 categories 같이 반환
 }

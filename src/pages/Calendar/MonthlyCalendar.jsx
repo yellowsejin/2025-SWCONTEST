@@ -1,13 +1,15 @@
+// src/pages/Calendar/MonthlyCalendar.jsx
 import React, { useMemo, useState } from "react";
 import "../../assets/scss/section/Calendar.scss";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSchedule } from "../../contexts/ScheduleContext";
 import { useCategory } from "../../contexts/CategoryContext";
 import useFriendCalendar from "../../hooks/useFriendCalendar";
+import { getAuth } from "firebase/auth";
 
 /* ---------- 카테고리/색상 유틸 ---------- */
 const resolveCategory = (item, categories) => {
-  if (!item || !categories?.length) return undefined;
+  if (!item || !categories?.length) return item?.category;
 
   const idCandidate =
     item.categoryId ??
@@ -28,20 +30,24 @@ const resolveCategory = (item, categories) => {
     const byName = categories.find((c) => c.name === nameCandidate);
     if (byName) return byName;
   }
-  return undefined;
+  return item?.category;
 };
 
-function MonthlyCalendar() {
-  const { schedulesByDate } = useSchedule(); // 내 캘린더(기존)
-  const { categories } = useCategory();
+function MonthlyCalendar({ friendId: propFriendId }) {
+  const { schedulesByDate } = useSchedule();
+  const { categories: myCategories } = useCategory();   // ✅ 내 카테고리
   const navigate = useNavigate();
 
-  // ▼ 친구 모드
-  const { friendId } = useParams();
-  const isFriendView = !!friendId;
+  const auth = getAuth();
+  const myUid = auth.currentUser?.uid || null;
 
-  // ▼ 친구 공개 일정(훅 사용)
-  const { items: friendItems, loading: friendLoading } = useFriendCalendar(friendId);
+  const { friendId: urlFriendId } = useParams();
+  const friendDocId = propFriendId || urlFriendId;
+  const isFriendView = !!friendDocId;
+
+  // ✅ 여기 수정 : schedules → friendItems, categories → friendCategories
+  const { schedules: friendItems, categories: friendCategories, loading: friendLoading } =
+    useFriendCalendar(myUid, friendDocId);
 
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -57,7 +63,6 @@ function MonthlyCalendar() {
   const yStr = String(currentYear);
   const mStr = String(currentMonth + 1).padStart(2, "0");
 
-  // ▼ 날짜 비교 보강: endDate 없으면 startDate로 대체, 앞 10자리만 비교
   const isInDateRange = (item, ymd) => {
     const s = item?.startDate ? String(item.startDate).slice(0, 10) : null;
     const eRaw = item?.endDate ?? item?.startDate;
@@ -67,14 +72,17 @@ function MonthlyCalendar() {
   };
 
   const handleDateClick = (day) => {
+    if (isFriendView) {
+      console.log("📌 친구 캘린더에서는 날짜 클릭 불가");
+      return;
+    }
     const dateStr = `${yStr}-${mStr}-${String(day).padStart(2, "0")}`;
-    if (isFriendView) navigate(`/daily/${dateStr}?uid=${friendId}`);
-    else navigate(`/daily/${dateStr}`);
+    navigate(`/daily/${dateStr}`);
   };
 
   const renderCalendar = () => {
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-    const startBlank = (firstDay + 6) % 7; // 월=0 기준
+    const startBlank = (firstDay + 6) % 7;
     const cells = [];
 
     for (let i = 0; i < startBlank; i++) {
@@ -86,10 +94,10 @@ function MonthlyCalendar() {
 
       let daySchedules;
       if (isFriendView) {
-        daySchedules = friendItems.filter((it) => isInDateRange(it, dateStr));
+        daySchedules = (friendItems || []).filter((it) => isInDateRange(it, dateStr));
       } else {
         daySchedules = (schedulesByDate?.[dateStr] || []).filter((item) =>
-          resolveCategory(item, categories)
+          resolveCategory(item, myCategories)
         );
       }
 
@@ -101,12 +109,13 @@ function MonthlyCalendar() {
           key={day}
           className="calendar-cell"
           onClick={() => handleDateClick(day)}
-          style={{ cursor: "pointer" }}
+          style={{ cursor: isFriendView ? "default" : "pointer" }}
         >
           <div className="date-number">{day}</div>
           <div className="badges">
             {displayed.map((item) => {
-              const cat = isFriendView ? undefined : resolveCategory(item, categories);
+              // ✅ 친구면 friendCategories로, 아니면 myCategories로
+              const cat = resolveCategory(item, isFriendView ? friendCategories : myCategories);
               const color = cat?.color || item?.color || "#8ED080";
               const done = !!item.done;
               return (
